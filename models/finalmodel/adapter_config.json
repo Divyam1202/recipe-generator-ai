@@ -1,0 +1,26 @@
+{
+  "base_model_name_or_path": "mistralai/Mistral-7B-Instruct-v0.2",
+  "peft_type": "LORA",
+  "task_type": "CAUSAL_LM",
+  "inference_mode": true,
+
+  "r": 8,
+  "lora_alpha": 16,
+  "lora_dropout": 0.05,
+  "bias": "none",
+
+  "target_modules": [
+    "q_proj",
+    "v_proj"
+  ],
+
+  "fan_in_fan_out": false,
+  "modules_to_save": null,
+  "layers_to_transform": null,
+  "layers_pattern": null,
+  "rank_pattern": {},
+  "alpha_pattern": {},
+
+  "init_lora_weights": true,
+  "revision": null
+}
