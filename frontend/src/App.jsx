@@ -17,6 +17,14 @@ const createTitle = (text) => {
   return cleaned.length > 22 ? `${cleaned.slice(0, 22)}...` : cleaned;
 };
 
+const getTimePhase = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 20) return "evening";
+  return "night";
+};
+
 // --- Icons ---
 const SendIcon = () => (
   <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="20" width="20">
@@ -56,6 +64,7 @@ export default function App() {
   const [error, setError] = useState("");
   const [messages, setMessages] = useState([]);
   const [loaderIndex, setLoaderIndex] = useState(0);
+  const [timePhase, setTimePhase] = useState(getTimePhase());
   const chatViewportRef = useRef(null);
 
   useEffect(() => {
@@ -79,7 +88,7 @@ export default function App() {
         }
       }
     } catch (err) {
-      console.error(err);
+      console.error("Storage parse error:", err);
     }
   }, []);
 
@@ -100,6 +109,13 @@ export default function App() {
     }, 1500);
     return () => window.clearInterval(interval);
   }, [loading]);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimePhase(getTimePhase());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
 
   const syncConversation = (conversationId, nextMessages, fallbackTitle) => {
     setConversations((prev) => {
@@ -178,7 +194,7 @@ export default function App() {
       syncConversation(conversationId, updatedMessages, createTitle(userPrompt));
     } catch (requestError) {
       console.error("Backend connection failed:", requestError);
-      const fallbackMessage = { id: Date.now() + 1, type: "ai", content: "Mock Response: Here is your high-protein vegan lasagna recipe..." };
+      const fallbackMessage = { id: Date.now() + 1, type: "ai", content: "Mock Response: Here is your high-protein vegan lasagna recipe. Fix your python backend to see real results." };
       const fallbackMessages = [...nextMessages, fallbackMessage];
       setMessages(fallbackMessages);
       setError("Backend not connected. Showing a mock response.");
@@ -196,9 +212,11 @@ export default function App() {
   };
 
   return (
-    <div className="app-shell">
+    <div className={`app-shell theme-${timePhase}`}>
+      {/* Sidebar Overlay for Mobile */}
       <div className={`sidebar-overlay ${sidebarOpen ? "visible" : ""}`} onClick={() => setSidebarOpen(false)} />
 
+      {/* Side Navigation Bar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <button className="icon-btn" onClick={() => setSidebarOpen(false)}>
@@ -238,6 +256,7 @@ export default function App() {
         </div>
       </aside>
 
+      {/* Main Content Wrapper */}
       <div className="main-wrapper">
         <header className="site-header">
           <div className="header-left">

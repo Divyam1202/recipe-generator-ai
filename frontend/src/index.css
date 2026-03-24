@@ -1,16 +1,28 @@
 :root {
-  /* Modern Flat Palette (Gemini Inspired) */
-  --bg-base: #131314;
-  --bg-surface: #1e1f20;
-  --bg-surface-hover: #282a2c;
-  --bg-user-bubble: #3f4145;
-  --text-primary: #e3e3e3;
-  --text-secondary: #c4c7c5;
-  --text-muted: #8e918f;
+  /* Core Variables */
+  --bg-surface: rgba(30, 31, 32, 0.7); /* Translucent */
+  --bg-surface-hover: rgba(40, 42, 44, 0.8);
+  --bg-user-bubble: rgba(63, 65, 69, 0.85);
+  --text-primary: #ffffff;
+  --text-secondary: #e3e3e3;
+  --text-muted: #a0a3a1;
   --accent: #a8c7fa;
-  --accent-hover: #b9d3fa;
-  --border-light: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(255, 255, 255, 0.15);
   --danger: #f28b82;
+}
+
+/* Dynamic Time Backgrounds */
+.theme-morning {
+  background: linear-gradient(135deg, #2b4162 0%, #fa9c7a 100%);
+}
+.theme-afternoon {
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+}
+.theme-evening {
+  background: linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%);
+}
+.theme-night {
+  background: linear-gradient(135deg, #000000 0%, #131314 50%, #1a1a24 100%);
 }
 
 * {
@@ -27,7 +39,8 @@ html, body, #root {
 body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: var(--text-primary);
-  background-color: var(--bg-base);
+  /* The base background is handled by app-shell now */
+  margin: 0;
 }
 
 button, input {
@@ -47,13 +60,14 @@ button {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
+  transition: background 2s ease-in-out;
 }
 
 /* Sidebar Overlay */
 .sidebar-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.6);
   z-index: 40;
   display: none;
 }
@@ -61,10 +75,13 @@ button {
   display: block;
 }
 
-/* Sidebar */
+/* Sidebar with Glassmorphism */
 .sidebar {
   width: 280px;
   background-color: var(--bg-surface);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border-right: 1px solid var(--border-light);
   display: flex;
   flex-direction: column;
   padding: 16px;
@@ -77,6 +94,7 @@ button {
   width: 0;
   padding: 0;
   transform: translateX(-100%);
+  border-right: none;
   overflow: hidden;
 }
 
@@ -110,7 +128,7 @@ button {
   transition: background-color 0.2s;
 }
 .new-chat-btn:hover {
-  background-color: #333638;
+  background-color: rgba(60, 62, 65, 0.9);
 }
 
 .history-section {
@@ -196,7 +214,7 @@ button {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0; /* Prevents flex blowout */
+  min-width: 0;
 }
 
 /* Standard Header */
@@ -206,7 +224,7 @@ button {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background-color: var(--bg-base);
+  background-color: transparent;
   border-bottom: 1px solid var(--border-light);
 }
 
@@ -318,12 +336,14 @@ button {
 }
 
 .message-row.ai .message-bubble {
-  background-color: transparent; /* Clean reading look */
+  background-color: transparent; 
   color: var(--text-primary);
 }
 
 .message-row.user .message-bubble {
   background-color: var(--bg-user-bubble);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
   color: var(--text-primary);
   border-bottom-right-radius: 4px;
 }
@@ -354,17 +374,19 @@ button {
 /* Input Area */
 .input-area {
   padding: 0 15% 16px;
-  background-color: var(--bg-base); /* covers scrollable content behind it nicely */
+  background-color: transparent;
 }
 
 .input-wrapper {
   display: flex;
   align-items: center;
   background-color: var(--bg-surface);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border-radius: 28px;
   padding: 8px 12px 8px 24px;
   border: 1px solid var(--border-light);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 .input-wrapper:focus-within {
   border-color: var(--accent);
@@ -387,7 +409,7 @@ button {
   align-items: center;
   justify-content: center;
   background-color: var(--text-primary);
-  color: var(--bg-base);
+  color: #000;
   border-radius: 50%;
   transition: opacity 0.2s;
 }
@@ -411,7 +433,7 @@ button {
   align-items: center;
   justify-content: space-between;
   padding: 16px 24px;
-  background-color: var(--bg-surface);
+  background-color: transparent;
   font-size: 0.8rem;
   color: var(--text-muted);
   border-top: 1px solid var(--border-light);
