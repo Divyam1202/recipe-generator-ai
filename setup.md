@@ -1,89 +1,61 @@
-# 🚀 Local Development Setup
+🚀 Local Development Setup
+To run this project locally, you must run both the Python FastAPI backend and the React Vite frontend concurrently in separate terminals.
 
-To run this project locally, you must run both the Python FastAPI backend and the React Vite frontend concurrently.
+1. Environment Variables
+Create .env files in both the frontend and backend directories.
 
-## 1. Environment Variables
+Backend (backend/.env)
 
-Create `.env` files in both the frontend and backend directories before starting the servers.
-
-## Backend (`backend/.env`)
-```env
+Code snippet
 PORT=8000
 MODEL_PATH=./models/finalmodel
 UNSPLASH_ACCESS_KEY=your_unsplash_api_key
 Frontend (frontend/.env)
-VITE_API_BASE_URL=http://127.0.0.1:8000
 
-## 2. Server Initialization
-
-Run backend and frontend in separate terminals.
-
-### Backend (FastAPI)
+Code snippet
+VITE_API_BASE_URL=[http://127.0.0.1:8000](http://127.0.0.1:8000)
+2. Backend Initialization (FastAPI)
+Bash
 cd backend
 python -m venv venv
 
-# Activate
-# Windows:
-venv\Scripts\activate
-# macOS/Linux:
-source venv/bin/activate
+# Activate Virtual Env
+# Windows: venv\Scripts\activate | Mac/Linux: source venv/bin/activate
 
 pip install -r requirements.txt
-In root folder run: uvicorn app.main:app --reload
+uvicorn app.main:app --reload --port 8000
+API Endpoint: http://127.0.0.1:8000
 
-Backend: http://127.0.0.1:8000
-
-### Frontend (React + Vite)
+3. Frontend Initialization (React + Vite)
+Bash
 cd frontend
 npm install
 npm run dev
+UI Endpoint: http://localhost:5173
 
-Frontend: http://localhost:5173
+🔗 API Contract
+The frontend expects the backend to adhere to this strictly:
 
-## 3. API Contract
 POST /generate
-Headers
-Content-Type: application/json
-Request
-{
-  "ingredients": "chicken breast, broccoli, soy sauce, garlic"
-}
-Response (200)
-{
-  "recipe": "### Garlic Soy Chicken & Broccoli\n\n**Prep time:** 10 mins | **Cook time:** 15 mins\n\n**Ingredients:**\n- 1 chicken breast, diced\n- 2 cups broccoli florets\n- 2 tbsp soy sauce\n- 2 cloves garlic, minced\n\n**Instructions:**\n1. Heat oil in a pan over medium heat.\n2. Add chicken and cook until browned.\n3. Toss in garlic and broccoli, add soy sauce.\n4. Cover and steam for 5 minutes. Serve immediately."
-}
-Errors
-422 → Invalid/missing ingredients
-500 → Model failure
 
-## 4. FastAPI Implementation
+Request: { "ingredients": "string" }
 
-Put this in backend/app/main.py:
+Response: { "recipe": "Markdown String", "responseTime": "float" }
 
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel
+🛠️ Tech Stack
+Frontend: React 18, Vite, Custom CSS.
 
-app = FastAPI()
+Backend: Python 3.x, FastAPI, Pydantic.
 
-class RecipeRequest(BaseModel):
-    ingredients: str
+External APIs: Unsplash Image API.
 
-@app.post("/generate")
-async def generate_recipe(request: RecipeRequest):
-    if not request.ingredients.strip():
-        raise HTTPException(status_code=422, detail="Invalid ingredients")
+📝 License
+MIT License. Created by Divyam Chandak.
 
-    try:
-        recipe = f"""### Generated Recipe
 
-**Ingredients Provided:** {request.ingredients}
+***
 
-**Instructions:**
-1. Combine ingredients
-2. Cook properly
-3. Serve hot
-"""
-        return {"recipe": recipe}
+### ⚠️ Critical Warning: Your `.gitignore`
+Before you push this to GitHub, ensure you have a `.gitignore` file at the root. If you don't, you will leak your **Unsplash API Key** and your repo will be bloated with thousands of `node_modules`. 
 
-    except Exception:
-        raise HTTPException(status_code=500, detail="Model inference failure")
+**Does your repository already have a `.gitignore` that includes `.env`, `node_modules/`, and `venv/`?** If not, I can provide that next so you don't ruin your GitHub history.
