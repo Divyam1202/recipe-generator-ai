@@ -73,23 +73,36 @@ export default function App() {
   }, [messages, loading, error]);
 
   useEffect(() => {
-    const savedState = window.localStorage.getItem(STORAGE_KEY);
-    if (!savedState) return;
-    try {
-      const parsed = JSON.parse(savedState);
-      const savedConversations = parsed.conversations ?? [];
-      const savedConversationId = parsed.currentConversationId ?? null;
-      setConversations(savedConversations);
-      if (savedConversationId) {
-        const activeConversation = savedConversations.find((c) => c.id === savedConversationId);
-        if (activeConversation) {
-          setCurrentConversationId(savedConversationId);
-          setMessages(activeConversation.messages ?? []);
+    const loadHistoryFromBackend = async () => {
+      try {
+        const response = await fetch("http://127.0.0.1:8000/history");
+        if (response.ok) {
+          const data = await response.json();
+          setConversations(data);
+        }
+      } catch (err) {
+        console.error("Failed to load history from backend:", err);
+        // Fallback to localStorage
+        const savedState = window.localStorage.getItem(STORAGE_KEY);
+        if (!savedState) return;
+        try {
+          const parsed = JSON.parse(savedState);
+          const savedConversations = parsed.conversations ?? [];
+          const savedConversationId = parsed.currentConversationId ?? null;
+          setConversations(savedConversations);
+          if (savedConversationId) {
+            const activeConversation = savedConversations.find((c) => c.id === savedConversationId);
+            if (activeConversation) {
+              setCurrentConversationId(savedConversationId);
+              setMessages(activeConversation.messages ?? []);
+            }
+          }
+        } catch (storageErr) {
+          console.error("Storage parse error:", storageErr);
         }
       }
-    } catch (err) {
-      console.error("Storage parse error:", err);
-    }
+    };
+    loadHistoryFromBackend();
   }, []);
 
   useEffect(() => {
@@ -118,15 +131,22 @@ export default function App() {
   }, []);
 
   const syncConversation = (conversationId, nextMessages, fallbackTitle) => {
+    const title = fallbackTitle;
     setConversations((prev) => {
       const existing = prev.find((c) => c.id === conversationId);
-      if (!existing) {
-        return [{ id: conversationId, title: fallbackTitle, messages: nextMessages, updatedAt: new Date().toISOString() }, ...prev];
-      }
-      return prev.map((c) =>
-        c.id === conversationId ? { ...c, title: c.title || fallbackTitle, messages: nextMessages, updatedAt: new Date().toISOString() } : c
-      );
+      const updatedConversations = !existing
+        ? [{ id: conversationId, title, messages: nextMessages, updatedAt: new Date().toISOString() }, ...prev]
+        : prev.map((c) =>
+            c.id === conversationId ? { ...c, title: c.title || title, messages: nextMessages, updatedAt: new Date().toISOString() } : c
+          );
+      return updatedConversations;
     });
+    // Save to backend
+    fetch("http://127.0.0.1:8000/save-conversation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: String(conversationId), title, messages: nextMessages }),
+    }).catch(err => console.error("Failed to save conversation:", err));
   };
 
   const startNewConversation = () => {
@@ -156,11 +176,22 @@ export default function App() {
         startNewConversation();
       }
     }
+    // Sync deletion to backend
+    fetch("http://127.0.0.1:8000/delete-conversation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: String(conversationId) }),
+    }).catch(err => console.error("Failed to delete from backend:", err));
   };
 
   const clearHistory = () => {
     setConversations([]);
     startNewConversation();
+    // Sync clear to backend
+    fetch("http://127.0.0.1:8000/clear-history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+    }).catch(err => console.error("Failed to clear backend history:", err));
   };
 
   const generateRecipe = async () => {
