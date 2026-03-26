@@ -19,6 +19,99 @@ const LOADER_TEXTS = [
   "Finishing the final recipe...",
 ];
 
+const TIME_THEMES = [
+  {
+    backgroundTop: "rgba(56, 189, 248, 0.24)",
+    backgroundBottom: "rgba(96, 165, 250, 0.18)",
+    backgroundCenter: "rgba(255, 255, 255, 0.05)",
+    accent: "#7dd3fc",
+    accentStrong: "#38bdf8",
+    accentCool: "#93c5fd",
+    textMuted: "#bfd7f4",
+    glowWarm: "rgba(56, 189, 248, 0.14)",
+    glowCool: "rgba(96, 165, 250, 0.14)",
+  },
+  {
+    backgroundTop: "rgba(99, 102, 241, 0.24)",
+    backgroundBottom: "rgba(168, 85, 247, 0.18)",
+    backgroundCenter: "rgba(255, 255, 255, 0.04)",
+    accent: "#a5b4fc",
+    accentStrong: "#c084fc",
+    accentCool: "#818cf8",
+    textMuted: "#cdc9ff",
+    glowWarm: "rgba(129, 140, 248, 0.15)",
+    glowCool: "rgba(192, 132, 252, 0.14)",
+  },
+  {
+    backgroundTop: "rgba(244, 114, 182, 0.24)",
+    backgroundBottom: "rgba(251, 146, 60, 0.2)",
+    backgroundCenter: "rgba(255, 255, 255, 0.05)",
+    accent: "#f9a8d4",
+    accentStrong: "#fb923c",
+    accentCool: "#f472b6",
+    textMuted: "#ffd0e4",
+    glowWarm: "rgba(244, 114, 182, 0.14)",
+    glowCool: "rgba(251, 146, 60, 0.14)",
+  },
+  {
+    backgroundTop: "rgba(250, 204, 21, 0.22)",
+    backgroundBottom: "rgba(251, 146, 60, 0.18)",
+    backgroundCenter: "rgba(255, 255, 255, 0.04)",
+    accent: "#fde68a",
+    accentStrong: "#fb923c",
+    accentCool: "#facc15",
+    textMuted: "#fce7b2",
+    glowWarm: "rgba(250, 204, 21, 0.14)",
+    glowCool: "rgba(251, 146, 60, 0.12)",
+  },
+  {
+    backgroundTop: "rgba(16, 185, 129, 0.2)",
+    backgroundBottom: "rgba(45, 212, 191, 0.18)",
+    backgroundCenter: "rgba(255, 255, 255, 0.04)",
+    accent: "#86efac",
+    accentStrong: "#2dd4bf",
+    accentCool: "#10b981",
+    textMuted: "#b9f5d8",
+    glowWarm: "rgba(16, 185, 129, 0.12)",
+    glowCool: "rgba(45, 212, 191, 0.12)",
+  },
+  {
+    backgroundTop: "rgba(34, 197, 94, 0.2)",
+    backgroundBottom: "rgba(59, 130, 246, 0.18)",
+    backgroundCenter: "rgba(255, 255, 255, 0.04)",
+    accent: "#86efac",
+    accentStrong: "#60a5fa",
+    accentCool: "#4ade80",
+    textMuted: "#c6f6d5",
+    glowWarm: "rgba(34, 197, 94, 0.12)",
+    glowCool: "rgba(59, 130, 246, 0.12)",
+  },
+  {
+    backgroundTop: "rgba(249, 115, 22, 0.22)",
+    backgroundBottom: "rgba(239, 68, 68, 0.18)",
+    backgroundCenter: "rgba(255, 255, 255, 0.04)",
+    accent: "#fdba74",
+    accentStrong: "#f87171",
+    accentCool: "#fb923c",
+    textMuted: "#ffd4b5",
+    glowWarm: "rgba(249, 115, 22, 0.14)",
+    glowCool: "rgba(239, 68, 68, 0.12)",
+  },
+  {
+    backgroundTop: "rgba(14, 165, 233, 0.2)",
+    backgroundBottom: "rgba(6, 182, 212, 0.18)",
+    backgroundCenter: "rgba(255, 255, 255, 0.04)",
+    accent: "#67e8f9",
+    accentStrong: "#38bdf8",
+    accentCool: "#22d3ee",
+    textMuted: "#c5f7ff",
+    glowWarm: "rgba(14, 165, 233, 0.12)",
+    glowCool: "rgba(6, 182, 212, 0.12)",
+  },
+];
+
+const getTimeTheme = () => TIME_THEMES[Math.floor(new Date().getHours() / 3)];
+
 const createTitle = (text) => {
   const cleaned = text.replace(/\s+/g, " ").trim();
   if (!cleaned) return "New recipe chat";
@@ -104,6 +197,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loadingTextIndex, setLoadingTextIndex] = useState(0);
+  const [timeTheme, setTimeTheme] = useState(getTimeTheme);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -195,6 +289,14 @@ export default function App() {
 
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setTimeTheme(getTimeTheme());
+    }, 60000);
+
+    return () => window.clearInterval(interval);
   }, []);
 
   const syncConversation = (conversationId, nextMessages, fallbackTitle) => {
@@ -370,8 +472,23 @@ export default function App() {
     currentConversationId &&
     conversations.find((conversation) => conversation.id === currentConversationId)?.title;
 
+  const themeStyle = {
+    "--theme-top": timeTheme.backgroundTop,
+    "--theme-bottom": timeTheme.backgroundBottom,
+    "--theme-center": timeTheme.backgroundCenter,
+    "--accent": timeTheme.accent,
+    "--accent-strong": timeTheme.accentStrong,
+    "--accent-cool": timeTheme.accentCool,
+    "--text-muted": timeTheme.textMuted,
+    "--glow-warm": timeTheme.glowWarm,
+    "--glow-cool": timeTheme.glowCool,
+  };
+
   return (
-    <div className="app-shell">
+    <div
+      className={`app-shell ${sidebarOpen ? "sidebar-expanded" : "sidebar-collapsed"}`}
+      style={themeStyle}
+    >
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
           <div>
@@ -390,7 +507,7 @@ export default function App() {
 
         <button className="new-chat-btn" onClick={startNewConversation} type="button">
           <PlusIcon />
-          <span>New chat</span>
+          <span className="new-chat-label">New chat</span>
         </button>
 
         <div className="history-section">
@@ -466,46 +583,45 @@ export default function App() {
           </div>
 
           <div className="topbar-side topbar-side-end">
-            <div className="status-pill">Ready</div>
+            <div className="status-pill">Chef Online</div>
           </div>
         </header>
 
         <section className="chat-panel">
+          <div className="chat-suggestions-bar">
+            <div className="chat-suggestions-track">
+              {SUGGESTIONS.map((prompt) => (
+                <button
+                  key={`bar-${prompt}`}
+                  className="suggestion-chip suggestion-chip-bar"
+                  onClick={() => setIngredients(prompt)}
+                  type="button"
+                >
+                  {prompt}
+                </button>
+              ))}
+              {SUGGESTIONS.map((prompt) => (
+                <button
+                  key={`bar-${prompt}-duplicate`}
+                  className="suggestion-chip suggestion-chip-bar"
+                  onClick={() => setIngredients(prompt)}
+                  type="button"
+                  tabIndex={-1}
+                  aria-hidden="true"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+          </div>
+
           {messages.length === 0 && !loading ? (
             <div className="empty-state">
-              <span className="welcome-badge">Chef online</span>
               <h3>Turn a list of ingredients into a complete recipe conversation.</h3>
               <p>
                 Ask for quick dinners, meal-prep ideas, calorie goals, or follow-up tweaks in the
                 same chat.
               </p>
-
-              <div className="suggestions-marquee">
-                <div className="suggestions-track">
-                  {SUGGESTIONS.map((prompt) => (
-                    <button
-                      key={prompt}
-                      className="suggestion-chip"
-                      onClick={() => setIngredients(prompt)}
-                      type="button"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                  {SUGGESTIONS.map((prompt) => (
-                    <button
-                      key={`${prompt}-duplicate`}
-                      className="suggestion-chip"
-                      onClick={() => setIngredients(prompt)}
-                      type="button"
-                      tabIndex={-1}
-                      aria-hidden="true"
-                    >
-                      {prompt}
-                    </button>
-                  ))}
-                </div>
-              </div>
             </div>
           ) : null}
 
