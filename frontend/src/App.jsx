@@ -33,12 +33,14 @@ const SendIcon = () => (
     <polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );
+
 const PlusIcon = () => (
   <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="18" width="18">
     <line x1="12" y1="5" x2="12" y2="19" />
     <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
+
 const MenuIcon = () => (
   <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="24" width="24">
     <line x1="3" y1="12" x2="21" y2="12" />
@@ -46,6 +48,7 @@ const MenuIcon = () => (
     <line x1="3" y1="18" x2="21" y2="18" />
   </svg>
 );
+
 const TrashIcon = () => (
   <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="16" width="16">
     <polyline points="3 6 5 6 21 6" />
@@ -81,6 +84,7 @@ export default function App() {
   const [timePhase, setTimePhase] = useState(getTimePhase());
   const chatViewportRef = useRef(null);
 
+  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages, loading]);
@@ -134,6 +138,10 @@ export default function App() {
       persistMessagesToConversation(activeConversationId, updatedMessages);
     }
 
+  // Load conversation history from storage
+  useEffect(() => {
+    const savedState = window.localStorage.getItem(STORAGE_KEY);
+    if (!savedState) return;
     try {
       const res = await fetch("http://127.0.0.1:8000/generate", {
         method: "POST",
@@ -164,22 +172,19 @@ export default function App() {
     loadHistoryFromBackend();
   }, []);
 
-      const aiMessage = {
-        id: now + 1,
-        type: "ai",
-        content: data.recipe,
-        image: recipeImage,
-        timestamp: new Date().toISOString()
-      };
+  // Save conversation history to storage
+  useEffect(() => {
+    window.localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify({ conversations, currentConversationId })
+    );
+  }, [conversations, currentConversationId]);
 
-      const withResponse = [...updatedMessages, aiMessage];
-      setMessages(withResponse);
-      persistMessagesToConversation(activeConversationId, withResponse);
-    } catch (err) {
-      setError("Failed to generate recipe. Please try again.");
-      console.error(err);
-    } finally {
-      setLoading(false);
+  // Loader animation
+  useEffect(() => {
+    if (!loading) {
+      setLoaderIndex(0);
+      return undefined;
     }
     const interval = window.setInterval(() => {
       setLoaderIndex((prev) => (prev + 1) % loaderTexts.length);
@@ -187,11 +192,39 @@ export default function App() {
     return () => window.clearInterval(interval);
   }, [loading]);
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      generateRecipe();
-    }
+  // Time phase update
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTimePhase(getTimePhase());
+    }, 60000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const syncConversation = (conversationId, nextMessages, fallbackTitle) => {
+    setConversations((prev) => {
+      const existing = prev.find((c) => c.id === conversationId);
+      if (!existing) {
+        return [
+          {
+            id: conversationId,
+            title: fallbackTitle,
+            messages: nextMessages,
+            updatedAt: new Date().toISOString(),
+          },
+          ...prev,
+        ];
+      }
+      return prev.map((c) =>
+        c.id === conversationId
+          ? {
+              ...c,
+              title: c.title || fallbackTitle,
+              messages: nextMessages,
+              updatedAt: new Date().toISOString(),
+            }
+          : c
+      );
+    });
   };
 
   const startNewConversation = () => {
@@ -216,16 +249,61 @@ export default function App() {
     }).catch(err => console.error("Failed to delete from backend:", err));
   };
 
-  const deleteConversation = (convId, e) => {
-    e.stopPropagation();
-    setConversations((prev) => prev.filter((c) => c.id !== convId));
-    if (currentConversationId === convId) {
-      startNewConversation();
+  const clearHistory = () => {
+    setConversations([]);
+    startNewConversation();
+  };
+
+  const generateRecipe = async () => {
+    if (!ingredients.trim() || loading) return;
+
+    const conversationId = currentConversationId ?? Date.now();
+    const userPrompt = ingredients.trim();
+    const userMessage = { id: Date.now(), type: "user", content: userPrompt };
+
+    const nextMessages = [...messages, userMessage];
+    setMessages(nextMessages);
+    setCurrentConversationId(conversationId);
+    setIngredients("");
+    setLoading(true);
+    setError("");
+    syncConversation(conversationId, nextMessages, createTitle(userPrompt));
+
+    try {
+      const response = await fetch("http://127.0.0.1:8000/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ingredients: userPrompt }),
+      });
+
+      if (!response.ok) throw new Error("Failed to generate recipe");
+
+      const data = await response.json();
+      const aiMessage = { id: Date.now() + 1, type: "ai", content: data.recipe };
+      const updatedMessages = [...nextMessages, aiMessage];
+      setMessages(updatedMessages);
+      syncConversation(conversationId, updatedMessages, createTitle(userPrompt));
+    } catch (requestError) {
+      console.error("Backend connection failed:", requestError);
+      const fallbackMessage = {
+        id: Date.now() + 1,
+        type: "ai",
+        content:
+          "Mock Response: Here is your high-protein vegan lasagna recipe. Fix your python backend to see real results.",
+      };
+      const fallbackMessages = [...nextMessages, fallbackMessage];
+      setMessages(fallbackMessages);
+      setError("Backend not connected. Showing a mock response.");
+      syncConversation(conversationId, fallbackMessages, createTitle(userPrompt));
+    } finally {
+      setLoading(false);
     }
   };
 
+  // FIX: Guard Enter submit during IME composition
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    // Check if user is currently composing (e.g., with CJK IME)
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault();
       generateRecipe();
     }
@@ -236,16 +314,16 @@ export default function App() {
     : "New recipe chat";
 
   return (
+    <div className={`app-shell theme-${timePhase}`}>
+      {/* Sidebar Overlay for Mobile */}
+      <div className={`sidebar-overlay ${sidebarOpen ? "visible" : ""}`} onClick={() => setSidebarOpen(false)} />
+
+  return (
     <div className="app">
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
-          <h2 className="sidebar-title">RecipeAI</h2>
-          <button
-            className="sidebar-toggle"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label="Toggle sidebar"
-          >
-            {sidebarOpen ? "←" : "→"}
+          <button className="icon-btn" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar">
+            <MenuIcon />
           </button>
         </div>
 
@@ -253,42 +331,55 @@ export default function App() {
           + New chat
         </button>
 
-        <div className="conversations-section">
-          <div className="conversations-label">Recent chats</div>
-          <div className="conversations-list">
+        <div className="history-section">
+          <div className="sidebar-heading-row">
+            <span className="sidebar-heading">Recent</span>
+            {conversations.length > 0 && (
+              <button className="clear-history-btn" onClick={clearHistory}>
+                Clear
+              </button>
+            )}
+          </div>
+
+          <div className="history-list">
             {conversations.length === 0 ? (
               <div className="empty-state">No chats yet</div>
             ) : (
-              conversations.map((conv) => (
-                <button
-                  key={conv.id}
-                  className={`conversation-item ${
-                    currentConversationId === conv.id ? "active" : ""
+              conversations.map((conversation) => (
+                <div
+                  key={conversation.id}
+                  className={`history-item ${
+                    currentConversationId === conversation.id ? "active" : ""
                   }`}
-                  onClick={() => loadConversation(conv.id)}
                 >
-                  <div className="conversation-meta">
-                    <div className="conversation-title">{conv.title}</div>
-                    <div className="conversation-time">{formatTime(conv.timestamp)}</div>
-                  </div>
-                  <span
-                    className="delete-conv-btn"
-                    onClick={(e) => deleteConversation(conv.id, e)}
-                    aria-label="Delete conversation"
+                  <button className="history-main" onClick={() => loadConversation(conversation.id)}>
+                    <span className="history-title">{conversation.title}</span>
+                  </button>
+                  {/* FIX: Use accessible button instead of non-focusable span for delete */}
+                  <button
+                    className="history-delete"
+                    onClick={() => deleteConversation(conversation.id)}
+                    aria-label={`Delete conversation: ${conversation.title}`}
+                    title="Delete conversation"
                   >
-                    ✕
-                  </span>
-                </button>
+                    <TrashIcon />
+                  </button>
+                </div>
               ))
             )}
           </div>
         </div>
 
-        {conversations.length > 0 && (
-          <div className="sidebar-footer">
-            <button className="clear-btn" onClick={clearAllConversations}>
-              Clear history
-            </button>
+      {/* Main Content Wrapper */}
+      <div className="main-wrapper">
+        <header className="site-header">
+          <div className="header-left">
+            {!sidebarOpen && (
+              <button className="icon-btn" onClick={() => setSidebarOpen(true)} aria-label="Open sidebar">
+                <MenuIcon />
+              </button>
+            )}
+            <h1 className="header-brand">Chef AI</h1>
           </div>
         )}
       </aside>
