@@ -3,366 +3,431 @@ import "./index.css";
 import { apiCall } from "./api";
 
 const STORAGE_KEY = "chef-ai-history";
-
-const loaderTexts = [
-  "Analyzing macro requirements...",
-  "Searching culinary database...",
-  "Balancing flavor profiles...",
-  "Structuring recipe steps...",
-  "Plating the final output...",
-];
-
-const createTitle = (text) => {
-  const cleaned = text.replace(/\s+/g, " ").trim();
-  if (!cleaned) return "Untitled recipe";
-  return cleaned.length > 22 ? `${cleaned.slice(0, 22)}...` : cleaned;
-};
-
-const getTimePhase = () => {
-  const hour = new Date().getHours();
-  if (hour >= 5 && hour < 12) return "morning";
-  if (hour >= 12 && hour < 17) return "afternoon";
-  if (hour >= 17 && hour < 20) return "evening";
-  return "night";
-};
-
-// --- Icons ---
-const SendIcon = () => (
-  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="20" width="20">
-    <line x1="22" y1="2" x2="11" y2="13" />
-    <polygon points="22 2 15 22 11 13 2 9 22 2" />
-  </svg>
-);
-
-const PlusIcon = () => (
-  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="18" width="18">
-    <line x1="12" y1="5" x2="12" y2="19" />
-    <line x1="5" y1="12" x2="19" y2="12" />
-  </svg>
-);
-
-const MenuIcon = () => (
-  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="24" width="24">
-    <line x1="3" y1="12" x2="21" y2="12" />
-    <line x1="3" y1="6" x2="21" y2="6" />
-    <line x1="3" y1="18" x2="21" y2="18" />
-  </svg>
-);
-
-const TrashIcon = () => (
-  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="16" width="16">
-    <polyline points="3 6 5 6 21 6" />
-    <path d="M19 6l-1 14H6L5 6" />
-    <path d="M10 11v6" />
-    <path d="M14 11v6" />
-    <path d="M9 6V4h6v2" />
-  </svg>
-);
+const MOBILE_BREAKPOINT = 900;
 
 const SUGGESTIONS = [
   "chicken, garlic, onions, tomato",
   "pasta, cream, mushrooms, butter",
   "rice, eggs, soy sauce, vegetables",
-  "salmon, lemon, dill, olive oil"
+  "salmon, lemon, dill, olive oil",
 ];
 
-const formatTime = (timestamp) =>
-  new Date(timestamp).toLocaleTimeString([], {
+const LOADER_TEXTS = [
+  "Reviewing your ingredients...",
+  "Balancing flavors and timing...",
+  "Drafting the cooking steps...",
+  "Finishing the final recipe...",
+];
+
+const createTitle = (text) => {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (!cleaned) return "New recipe chat";
+  return cleaned.length > 34 ? `${cleaned.slice(0, 34)}...` : cleaned;
+};
+
+const formatTime = (timestamp) => {
+  if (!timestamp) return "";
+
+  const parsed = new Date(timestamp);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  return parsed.toLocaleTimeString([], {
     hour: "2-digit",
-    minute: "2-digit"
+    minute: "2-digit",
   });
+};
+
+const normalizeMessage = (message) => ({
+  id: Number(message.id) || Date.now(),
+  type: message.type === "user" ? "user" : "ai",
+  content: String(message.content ?? ""),
+  timestamp: message.timestamp ?? new Date().toISOString(),
+});
+
+const normalizeConversation = (conversation) => ({
+  id: String(conversation.id),
+  title: conversation.title || "New recipe chat",
+  updatedAt: conversation.updatedAt ?? new Date().toISOString(),
+  messages: Array.isArray(conversation.messages)
+    ? conversation.messages.map(normalizeMessage)
+    : [],
+});
+
+const buildConversationPayload = (conversationId, title, messages) => ({
+  id: String(conversationId),
+  title,
+  messages: messages.map(({ id, type, content }) => ({
+    id: Number(id),
+    type,
+    content,
+  })),
+});
+
+const SendIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M21 3 10 14" />
+    <path d="m21 3-7 18-4-7-7-4Z" />
+  </svg>
+);
+
+const MenuIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 6h18" />
+    <path d="M3 12h18" />
+    <path d="M3 18h18" />
+  </svg>
+);
+
+const PlusIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M12 5v14" />
+    <path d="M5 12h14" />
+  </svg>
+);
+
+const TrashIcon = () => (
+  <svg viewBox="0 0 24 24" aria-hidden="true">
+    <path d="M3 6h18" />
+    <path d="M8 6V4h8v2" />
+    <path d="m6 6 1 14h10l1-14" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+  </svg>
+);
 
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 900);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > MOBILE_BREAKPOINT);
   const [conversations, setConversations] = useState([]);
   const [currentConversationId, setCurrentConversationId] = useState(null);
+  const [messages, setMessages] = useState([]);
   const [ingredients, setIngredients] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [messages, setMessages] = useState([]);
-  const [loaderIndex, setLoaderIndex] = useState(0);
-  const [timePhase, setTimePhase] = useState(getTimePhase());
-  const chatViewportRef = useRef(null);
+  const [loadingTextIndex, setLoadingTextIndex] = useState(0);
+  const messagesEndRef = useRef(null);
 
-  // Scroll to bottom when messages change
   useEffect(() => {
-    scrollToBottom();
-  }, [messages, loading]);
+    let mounted = true;
 
-  const persistMessagesToConversation = (convId, conversationMessages) => {
-    setConversations((prev) =>
-      prev.map((conv) =>
-        conv.id === convId
-          ? {
-              ...conv,
-              messages: conversationMessages,
-              timestamp: new Date(),
-              title: conversationMessages[0]?.content?.slice(0, 34) || "New conversation"
-            }
-          : conv
-      )
-    );
-  };
-
-  const generateRecipe = async () => {
-    if (!ingredients.trim() || loading) return;
-
-    const now = Date.now();
-    const userMessage = {
-      id: now,
-      type: "user",
-      content: ingredients.trim(),
-      timestamp: new Date().toISOString()
-    };
-
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setIngredients("");
-    setLoading(true);
-    setError("");
-
-    let activeConversationId = currentConversationId;
-    if (!activeConversationId) {
-      activeConversationId = now + 5;
-      setCurrentConversationId(activeConversationId);
-      setConversations((prev) => [
-        {
-          id: activeConversationId,
-          title: userMessage.content.slice(0, 34),
-          timestamp: new Date(),
-          messages: [userMessage]
-        },
-        ...prev
-      ]);
-    } else {
-      persistMessagesToConversation(activeConversationId, updatedMessages);
-    }
-
-  // Load conversation history from storage
-  useEffect(() => {
-    const savedState = window.localStorage.getItem(STORAGE_KEY);
-    if (!savedState) return;
-    
-    const loadData = async () => {
-      try {
-        const res = await fetch("http://127.0.0.1:8000/generate", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({ ingredients: userMessage.content })
-        });
-
-        if (!res.ok) throw new Error("Failed to generate recipe");
-
-        const data = await res.json();
-
-        let recipeImage = "";
+    const loadInitialState = async () => {
+      const savedState = window.localStorage.getItem(STORAGE_KEY);
+      if (savedState) {
         try {
-          const ingredientsList = userMessage.content.split(",")[0].trim();
-          const imageRes = await fetch(
-            `https://api.unsplash.com/search/photos?query=${ingredientsList}%20food&count=1&client_id=kmL92F3P3aQDkr7Xd01fRhKH_aXaOc0kKYvtJTRHaXk`
-          );
-          const imageData = await imageRes.json();
-          if (imageData.results?.length > 0) {
-            recipeImage = imageData.results[0].urls.regular;
+          const parsed = JSON.parse(savedState);
+          const savedConversations = Array.isArray(parsed.conversations)
+            ? parsed.conversations.map(normalizeConversation)
+            : [];
+          const savedCurrentId =
+            parsed.currentConversationId !== undefined && parsed.currentConversationId !== null
+              ? String(parsed.currentConversationId)
+              : null;
+
+          if (!mounted) return;
+
+          setConversations(savedConversations);
+          setCurrentConversationId(savedCurrentId);
+
+          if (savedCurrentId) {
+            const activeConversation = savedConversations.find((item) => item.id === savedCurrentId);
+            setMessages(activeConversation?.messages ?? []);
           }
-        } catch {
-          console.log("Could not fetch image");
+        } catch (storageError) {
+          console.error("Failed to restore local conversation history:", storageError);
         }
-      } catch (error) {
-        console.error("Failed to load data:", error);
+      }
+
+      try {
+        const history = await apiCall("/history");
+        if (!mounted || !Array.isArray(history)) return;
+
+        const normalizedHistory = history.map(normalizeConversation);
+        if (normalizedHistory.length === 0) return;
+
+        setConversations(normalizedHistory);
+        setCurrentConversationId((previousId) => {
+          const nextId = previousId ?? normalizedHistory[0].id;
+          const activeConversation = normalizedHistory.find((item) => item.id === nextId);
+          setMessages(activeConversation?.messages ?? normalizedHistory[0].messages ?? []);
+          return nextId;
+        });
+      } catch (historyError) {
+        console.error("Failed to load backend history:", historyError);
       }
     };
-    
-    loadData();
-    loadHistoryFromBackend();
+
+    loadInitialState();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
-  // Save conversation history to storage
   useEffect(() => {
     window.localStorage.setItem(
       STORAGE_KEY,
-      JSON.stringify({ conversations, currentConversationId })
+      JSON.stringify({ conversations, currentConversationId }),
     );
   }, [conversations, currentConversationId]);
 
-  // Loader animation
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, loading, error]);
+
   useEffect(() => {
     if (!loading) {
-      setLoaderIndex(0);
+      setLoadingTextIndex(0);
       return undefined;
     }
+
     const interval = window.setInterval(() => {
-      setLoaderIndex((prev) => (prev + 1) % loaderTexts.length);
-    }, 1500);
+      setLoadingTextIndex((previous) => (previous + 1) % LOADER_TEXTS.length);
+    }, 1400);
+
     return () => window.clearInterval(interval);
   }, [loading]);
 
-  // Time phase update
   useEffect(() => {
-    const interval = setInterval(() => {
-      setTimePhase(getTimePhase());
-    }, 60000);
-    return () => clearInterval(interval);
+    const onResize = () => {
+      if (window.innerWidth > MOBILE_BREAKPOINT) {
+        setSidebarOpen(true);
+      }
+    };
+
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
   }, []);
 
   const syncConversation = (conversationId, nextMessages, fallbackTitle) => {
-    setConversations((prev) => {
-      const existing = prev.find((c) => c.id === conversationId);
+    const timestamp = new Date().toISOString();
+
+    setConversations((previous) => {
+      const normalizedId = String(conversationId);
+      const existing = previous.find((conversation) => conversation.id === normalizedId);
+
       if (!existing) {
         return [
           {
-            id: conversationId,
+            id: normalizedId,
             title: fallbackTitle,
+            updatedAt: timestamp,
             messages: nextMessages,
-            updatedAt: new Date().toISOString(),
           },
-          ...prev,
+          ...previous,
         ];
       }
-      return prev.map((c) =>
-        c.id === conversationId
+
+      const updated = previous.map((conversation) =>
+        conversation.id === normalizedId
           ? {
-              ...c,
-              title: c.title || fallbackTitle,
+              ...conversation,
+              title: fallbackTitle || conversation.title,
+              updatedAt: timestamp,
               messages: nextMessages,
-              updatedAt: new Date().toISOString(),
             }
-          : c
+          : conversation,
       );
+
+      return updated.sort((left, right) => new Date(right.updatedAt) - new Date(left.updatedAt));
     });
   };
 
+  const saveConversationToBackend = async (conversationId, title, nextMessages) => {
+    try {
+      await apiCall("/save-conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(buildConversationPayload(conversationId, title, nextMessages)),
+      });
+    } catch (saveError) {
+      console.error("Failed to save conversation:", saveError);
+    }
+  };
+
   const startNewConversation = () => {
-    setMessages([]);
     setCurrentConversationId(null);
+    setMessages([]);
     setIngredients("");
     setError("");
+
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
+      setSidebarOpen(false);
+    }
   };
 
-  const loadConversation = (convId) => {
-    const conv = conversations.find((c) => c.id === convId);
-    if (conv) {
-      setCurrentConversationId(convId);
-      setMessages(conv.messages);
+  const loadConversation = (conversationId) => {
+    const normalizedId = String(conversationId);
+    const conversation = conversations.find((item) => item.id === normalizedId);
+    if (!conversation) return;
+
+    setCurrentConversationId(normalizedId);
+    setMessages(conversation.messages);
+    setError("");
+
+    if (window.innerWidth <= MOBILE_BREAKPOINT) {
+      setSidebarOpen(false);
+    }
+  };
+
+  const deleteConversation = async (conversationId) => {
+    const normalizedId = String(conversationId);
+    const remaining = conversations.filter((conversation) => conversation.id !== normalizedId);
+
+    setConversations(remaining);
+
+    if (currentConversationId === normalizedId) {
+      const nextConversation = remaining[0];
+      setCurrentConversationId(nextConversation?.id ?? null);
+      setMessages(nextConversation?.messages ?? []);
       setError("");
     }
-    // Sync deletion to backend asynchronously
-    apiCall("/delete-conversation", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: String(conversationId) }),
-    }).catch(err => console.error("Failed to delete from backend:", err));
+
+    try {
+      await apiCall("/delete-conversation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id: normalizedId }),
+      });
+    } catch (deleteError) {
+      console.error("Failed to delete conversation from backend:", deleteError);
+    }
   };
 
-  const clearHistory = () => {
+  const clearHistory = async () => {
     setConversations([]);
-    startNewConversation();
+    setCurrentConversationId(null);
+    setMessages([]);
+    setIngredients("");
+    setError("");
+
+    try {
+      await apiCall("/clear-history", { method: "POST" });
+    } catch (clearError) {
+      console.error("Failed to clear backend history:", clearError);
+    }
   };
 
   const generateRecipe = async () => {
-    if (!ingredients.trim() || loading) return;
+    const trimmedIngredients = ingredients.trim();
+    if (!trimmedIngredients || loading) return;
 
-    const conversationId = currentConversationId ?? Date.now();
-    const userPrompt = ingredients.trim();
-    const userMessage = { id: Date.now(), type: "user", content: userPrompt };
+    const conversationId = currentConversationId ?? String(Date.now());
+    const timestamp = new Date().toISOString();
+    const userMessage = {
+      id: Date.now(),
+      type: "user",
+      content: trimmedIngredients,
+      timestamp,
+    };
 
     const nextMessages = [...messages, userMessage];
-    setMessages(nextMessages);
+    const title = createTitle(trimmedIngredients);
+
     setCurrentConversationId(conversationId);
+    setMessages(nextMessages);
     setIngredients("");
     setLoading(true);
     setError("");
-    syncConversation(conversationId, nextMessages, createTitle(userPrompt));
+    syncConversation(conversationId, nextMessages, title);
 
     try {
-      const response = await fetch("http://127.0.0.1:8000/generate", {
+      const data = await apiCall("/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ingredients: userPrompt }),
+        body: JSON.stringify({
+          ingredients: trimmedIngredients,
+          messages: buildConversationPayload(conversationId, title, nextMessages).messages,
+        }),
       });
 
-      if (!response.ok) throw new Error("Failed to generate recipe");
-
-      const data = await response.json();
-      const aiMessage = { id: Date.now() + 1, type: "ai", content: data.recipe };
-      const updatedMessages = [...nextMessages, aiMessage];
-      setMessages(updatedMessages);
-      syncConversation(conversationId, updatedMessages, createTitle(userPrompt));
-    } catch (requestError) {
-      console.error("Backend connection failed:", requestError);
-      const fallbackMessage = {
+      const aiMessage = {
         id: Date.now() + 1,
         type: "ai",
-        content:
-          "Mock Response: Here is your high-protein vegan lasagna recipe. Fix your python backend to see real results.",
+        content: data.recipe,
+        timestamp: new Date().toISOString(),
       };
-      const fallbackMessages = [...nextMessages, fallbackMessage];
-      setMessages(fallbackMessages);
-      setError("Backend not connected. Showing a mock response.");
-      syncConversation(conversationId, fallbackMessages, createTitle(userPrompt));
+
+      const updatedMessages = [...nextMessages, aiMessage];
+      setMessages(updatedMessages);
+      syncConversation(conversationId, updatedMessages, title);
+      await saveConversationToBackend(conversationId, title, updatedMessages);
+    } catch (requestError) {
+      console.error("Recipe generation failed:", requestError);
+      setError(requestError.message || "Unable to reach the backend right now.");
+      await saveConversationToBackend(conversationId, title, nextMessages);
     } finally {
       setLoading(false);
     }
   };
 
-  // FIX: Guard Enter submit during IME composition
   const handleKeyDown = (event) => {
-    // Check if user is currently composing (e.g., with CJK IME)
     if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault();
       generateRecipe();
     }
   };
 
-  const conversationTitle = currentConversationId
-    ? conversations.find((conv) => conv.id === currentConversationId)?.title
-    : "New recipe chat";
+  const activeConversationTitle =
+    currentConversationId &&
+    conversations.find((conversation) => conversation.id === currentConversationId)?.title;
 
   return (
-    <div className="app">
+    <div className="app-shell">
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
-          <button className="icon-btn" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar">
+          <div>
+            <p className="sidebar-kicker">Recipe workspace</p>
+            <h1 className="sidebar-title">Chef AI</h1>
+          </div>
+          <button
+            className="icon-btn mobile-only"
+            onClick={() => setSidebarOpen(false)}
+            aria-label="Close sidebar"
+            type="button"
+          >
             <MenuIcon />
           </button>
         </div>
 
-        <button className="new-chat-btn" onClick={startNewConversation}>
-          + New chat
+        <button className="new-chat-btn" onClick={startNewConversation} type="button">
+          <PlusIcon />
+          <span>New chat</span>
         </button>
 
         <div className="history-section">
-          <div className="sidebar-heading-row">
-            <span className="sidebar-heading">Recent</span>
-            {conversations.length > 0 && (
-              <button className="clear-history-btn" onClick={clearHistory}>
-                Clear
+          <div className="history-header">
+            <span>Recent chats</span>
+            {conversations.length > 0 ? (
+              <button className="clear-history-btn" onClick={clearHistory} type="button">
+                Clear all
               </button>
-            )}
+            ) : null}
           </div>
 
           <div className="history-list">
             {conversations.length === 0 ? (
-              <div className="empty-state">No chats yet</div>
+              <div className="empty-history">Saved recipe chats will show up here.</div>
             ) : (
               conversations.map((conversation) => (
                 <div
                   key={conversation.id}
                   className={`history-item ${
-                    currentConversationId === conversation.id ? "active" : ""
+                    conversation.id === currentConversationId ? "active" : ""
                   }`}
                 >
-                  <button className="history-main" onClick={() => loadConversation(conversation.id)}>
+                  <button
+                    className="history-main"
+                    onClick={() => loadConversation(conversation.id)}
+                    type="button"
+                  >
                     <span className="history-title">{conversation.title}</span>
+                    <span className="history-time">{formatTime(conversation.updatedAt)}</span>
                   </button>
-                  {/* FIX: Use accessible button instead of non-focusable span for delete */}
                   <button
                     className="history-delete"
                     onClick={() => deleteConversation(conversation.id)}
-                    aria-label={`Delete conversation: ${conversation.title}`}
+                    aria-label={`Delete conversation ${conversation.title}`}
                     title="Delete conversation"
+                    type="button"
                   >
                     <TrashIcon />
                   </button>
@@ -371,51 +436,56 @@ export default function App() {
             )}
           </div>
         </div>
+      </aside>
 
-      {/* Main Content Wrapper */}
-      <div className="main-wrapper">
-        <header className="site-header">
-          <div className="header-left">
-            {!sidebarOpen && (
-              <button className="icon-btn" onClick={() => setSidebarOpen(true)} aria-label="Open sidebar">
+      {sidebarOpen && window.innerWidth <= MOBILE_BREAKPOINT ? (
+        <button
+          className="sidebar-overlay"
+          type="button"
+          aria-label="Close sidebar overlay"
+          onClick={() => setSidebarOpen(false)}
+        />
+      ) : null}
+
+      <main className="main-panel">
+        <header className="topbar">
+          <div className="topbar-title">
+            {!sidebarOpen ? (
+              <button
+                className="icon-btn"
+                onClick={() => setSidebarOpen(true)}
+                aria-label="Open sidebar"
+                type="button"
+              >
                 <MenuIcon />
               </button>
-            )}
-            <h1 className="header-brand">Chef AI</h1>
-          </div>
-        </header>
-      </div>
-
-      <main className="main-container">
-        <header className="chat-header">
-          <div className="chat-title-wrap">
-            <button
-              className="mobile-menu-btn"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label="Toggle sidebar"
-            >
-              ☰
-            </button>
+            ) : null}
             <div>
-              <h1>{conversationTitle || "New recipe chat"}</h1>
-              <p>Online chef assistant</p>
+              <p className="eyebrow">Kitchen assistant</p>
+              <h2>{activeConversationTitle || "New recipe chat"}</h2>
             </div>
           </div>
-          <div className="chat-status">Ready to cook</div>
+          <div className="status-pill">Ready</div>
         </header>
 
-        <section className="chat-area">
+        <section className="chat-panel">
           {messages.length === 0 && !loading ? (
-            <div className="empty-chat-state">
-              <div className="welcome-badge">🍳 Chef online</div>
-              <h2>Drop ingredients, get a complete recipe in chat.</h2>
+            <div className="empty-state">
+              <span className="welcome-badge">Chef online</span>
+              <h3>Turn a list of ingredients into a complete recipe conversation.</h3>
               <p>
-                Designed like a messaging app so your recipe flow feels natural, fast, and easy to revisit.
+                Ask for quick dinners, meal-prep ideas, calorie goals, or follow-up tweaks in the
+                same chat.
               </p>
 
-              <div className="suggestion-prompts">
+              <div className="suggestions">
                 {SUGGESTIONS.map((prompt) => (
-                  <button key={prompt} className="prompt-btn" onClick={() => setIngredients(prompt)}>
+                  <button
+                    key={prompt}
+                    className="suggestion-chip"
+                    onClick={() => setIngredients(prompt)}
+                    type="button"
+                  >
                     {prompt}
                   </button>
                 ))}
@@ -423,98 +493,82 @@ export default function App() {
             </div>
           ) : null}
 
-          <div className="messages-container">
-            {messages.map((msg) => (
+          <div className="messages">
+            {messages.map((message) => (
               <article
-                key={msg.id}
-                className={`message-row ${msg.type === "user" ? "user-row" : "ai-row"}`}
+                key={message.id}
+                className={`message-row ${message.type === "user" ? "user-row" : "ai-row"}`}
               >
-                <div className={`message-bubble ${msg.type === "user" ? "user-bubble" : "ai-bubble"}`}>
-                  {msg.type === "ai" && msg.image ? (
-                    <div className="message-image">
-                      <img src={msg.image} alt="Recipe suggestion" />
-                    </div>
-                  ) : null}
-
-                  <div className="message-text">{msg.content}</div>
-
-                  <div className="message-footer">
-                    <span>{formatTime(msg.timestamp)}</span>
-                    {msg.type === "ai" && (
+                <div
+                  className={`message-bubble ${
+                    message.type === "user" ? "user-bubble" : "ai-bubble"
+                  }`}
+                >
+                  <div className="message-text">{message.content}</div>
+                  <div className="message-meta">
+                    <span>{formatTime(message.timestamp)}</span>
+                    {message.type === "ai" ? (
                       <button
-                        className="action-btn"
-                        onClick={() => {
-                          navigator.clipboard.writeText(msg.content);
-                        }}
-                        title="Copy recipe"
+                        className="copy-btn"
+                        onClick={() => navigator.clipboard.writeText(message.content)}
+                        type="button"
                       >
                         Copy
                       </button>
-                    )}
+                    ) : null}
                   </div>
                 </div>
               </article>
             ))}
 
-            {loading && (
+            {loading ? (
               <article className="message-row ai-row">
                 <div className="message-bubble ai-bubble loading-bubble">
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                  <span className="loading-text">Chef is preparing your recipe...</span>
+                  <div className="typing">
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                    <span className="typing-dot" />
+                  </div>
+                  <span>{LOADER_TEXTS[loadingTextIndex]}</span>
                 </div>
               </article>
-            )}
+            ) : null}
 
-            {error && (
+            {error ? (
               <article className="message-row ai-row">
                 <div className="message-bubble ai-bubble error-bubble">{error}</div>
               </article>
-            )}
+            ) : null}
+
+            <div ref={messagesEndRef} />
           </div>
 
-          <div className="input-area">
-            <div className="input-wrapper">
+          <div className="composer">
+            <div className="composer-shell">
               <input
                 type="text"
-                placeholder="Ask for a recipe, e.g., 'Vegan lasagna under 500 calories'"
-                autoComplete="off"
                 value={ingredients}
-                onChange={(e) => setIngredients(e.target.value)}
+                onChange={(event) => setIngredients(event.target.value)}
                 onKeyDown={handleKeyDown}
+                placeholder="Ask for a recipe with your ingredients..."
+                autoComplete="off"
                 disabled={loading}
               />
-              <button onClick={generateRecipe} disabled={loading || !ingredients.trim()} aria-label="Send recipe request">
+              <button
+                className="send-btn"
+                onClick={generateRecipe}
+                disabled={loading || !ingredients.trim()}
+                aria-label="Send recipe request"
+                type="button"
+              >
                 <SendIcon />
               </button>
             </div>
-            <p className="disclaimer">Chef AI can make mistakes. Always check ingredient allergies.</p>
+            <p className="composer-note">
+              Chef AI can make mistakes. Double-check allergens, temperatures, and substitutions.
+            </p>
           </div>
         </section>
-
-        <footer className="input-area" style={{display: 'none'}}>
-          <div className="input-wrapper">
-            <textarea
-              className="message-input"
-              placeholder="Type ingredients like: chicken, onion, tomato"
-              value={ingredients}
-              onChange={(e) => setIngredients(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={loading}
-              rows="1"
-            />
-            <button
-              className="send-btn"
-              onClick={generateRecipe}
-              disabled={loading || !ingredients.trim()}
-              aria-label="Generate recipe"
-            >
-              {loading ? "..." : "➤"}
-            </button>
-          </div>
-          <p className="input-hint">Press Enter to send • Shift + Enter for new line.</p>
-        </footer>
       </main>
     </div>
   );
