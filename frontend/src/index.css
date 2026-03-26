@@ -478,6 +478,11 @@ input {
   background: linear-gradient(0deg, #121327, transparent);
 }
 
+.messages-empty::before,
+.messages-empty::after {
+  display: none;
+}
+
 .message-row {
   display: flex;
 }

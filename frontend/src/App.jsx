@@ -535,7 +535,11 @@ export default function App() {
             </div>
           ) : null}
 
-          <div className="messages">
+          <div
+            className={`messages ${
+              messages.length === 0 && !loading && !error ? "messages-empty" : ""
+            }`}
+          >
             {messages.map((message) => (
               <article
                 key={message.id}
