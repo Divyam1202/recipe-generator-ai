@@ -1,7 +1,14 @@
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
+:root {
+  /* Core Variables */
+  --bg-surface: rgba(30, 31, 32, 0.7); /* Translucent */
+  --bg-surface-hover: rgba(40, 42, 44, 0.8);
+  --bg-user-bubble: rgba(63, 65, 69, 0.85);
+  --text-primary: #ffffff;
+  --text-secondary: #e3e3e3;
+  --text-muted: #a0a3a1;
+  --accent: #a8c7fa;
+  --border-light: rgba(255, 255, 255, 0.15);
+  --danger: #f28b82;
 }
 
 :root {
@@ -135,6 +142,7 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  color: var(--text-primary);
 }
 
 .conversation-time {
@@ -335,7 +343,8 @@ body {
   color: inherit;
 }
 
-.loading-bubble {
+/* Loader */
+.loader-content {
   display: flex;
   align-items: center;
   gap: 6px;

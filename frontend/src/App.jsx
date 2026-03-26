@@ -1,5 +1,60 @@
-import { useState, useEffect, useRef } from "react";
-import "./App.css";
+import { useEffect, useRef, useState } from "react";
+import "./index.css";
+import { apiCall } from "./api";
+
+const STORAGE_KEY = "chef-ai-history";
+
+const loaderTexts = [
+  "Analyzing macro requirements...",
+  "Searching culinary database...",
+  "Balancing flavor profiles...",
+  "Structuring recipe steps...",
+  "Plating the final output...",
+];
+
+const createTitle = (text) => {
+  const cleaned = text.replace(/\s+/g, " ").trim();
+  if (!cleaned) return "Untitled recipe";
+  return cleaned.length > 22 ? `${cleaned.slice(0, 22)}...` : cleaned;
+};
+
+const getTimePhase = () => {
+  const hour = new Date().getHours();
+  if (hour >= 5 && hour < 12) return "morning";
+  if (hour >= 12 && hour < 17) return "afternoon";
+  if (hour >= 17 && hour < 20) return "evening";
+  return "night";
+};
+
+// --- Icons ---
+const SendIcon = () => (
+  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="20" width="20">
+    <line x1="22" y1="2" x2="11" y2="13" />
+    <polygon points="22 2 15 22 11 13 2 9 22 2" />
+  </svg>
+);
+const PlusIcon = () => (
+  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="18" width="18">
+    <line x1="12" y1="5" x2="12" y2="19" />
+    <line x1="5" y1="12" x2="19" y2="12" />
+  </svg>
+);
+const MenuIcon = () => (
+  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="24" width="24">
+    <line x1="3" y1="12" x2="21" y2="12" />
+    <line x1="3" y1="6" x2="21" y2="6" />
+    <line x1="3" y1="18" x2="21" y2="18" />
+  </svg>
+);
+const TrashIcon = () => (
+  <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="16" width="16">
+    <polyline points="3 6 5 6 21 6" />
+    <path d="M19 6l-1 14H6L5 6" />
+    <path d="M10 11v6" />
+    <path d="M14 11v6" />
+    <path d="M9 6V4h6v2" />
+  </svg>
+);
 
 const SUGGESTIONS = [
   "chicken, garlic, onions, tomato",
@@ -15,18 +70,16 @@ const formatTime = (timestamp) =>
   });
 
 export default function App() {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 900);
   const [conversations, setConversations] = useState([]);
   const [currentConversationId, setCurrentConversationId] = useState(null);
   const [ingredients, setIngredients] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [messages, setMessages] = useState([]);
-  const messagesEndRef = useRef(null);
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+  const [loaderIndex, setLoaderIndex] = useState(0);
+  const [timePhase, setTimePhase] = useState(getTimePhase());
+  const chatViewportRef = useRef(null);
 
   useEffect(() => {
     scrollToBottom();
@@ -107,6 +160,9 @@ export default function App() {
       } catch {
         console.log("Could not fetch image");
       }
+    };
+    loadHistoryFromBackend();
+  }, []);
 
       const aiMessage = {
         id: now + 1,
@@ -125,7 +181,11 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  };
+    const interval = window.setInterval(() => {
+      setLoaderIndex((prev) => (prev + 1) % loaderTexts.length);
+    }, 1500);
+    return () => window.clearInterval(interval);
+  }, [loading]);
 
   const handleKeyDown = (e) => {
     if (e.key === "Enter" && !e.shiftKey) {
@@ -148,6 +208,12 @@ export default function App() {
       setMessages(conv.messages);
       setError("");
     }
+    // Sync deletion to backend asynchronously
+    apiCall("/delete-conversation", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id: String(conversationId) }),
+    }).catch(err => console.error("Failed to delete from backend:", err));
   };
 
   const deleteConversation = (convId, e) => {
@@ -158,10 +224,10 @@ export default function App() {
     }
   };
 
-  const clearAllConversations = () => {
-    if (window.confirm("Clear all conversations?")) {
-      setConversations([]);
-      startNewConversation();
+  const handleKeyDown = (event) => {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      generateRecipe();
     }
   };
 
@@ -314,7 +380,22 @@ export default function App() {
               </article>
             )}
 
-            <div ref={messagesEndRef} />
+          <div className="input-area">
+            <div className="input-wrapper">
+              <input
+                type="text"
+                placeholder="Ask for a recipe, e.g., 'Vegan lasagna under 500 calories'"
+                autoComplete="off"
+                value={ingredients}
+                onChange={(e) => setIngredients(e.target.value)}
+                onKeyDown={handleKeyDown}
+                disabled={loading}
+              />
+              <button onClick={generateRecipe} disabled={loading || !ingredients.trim()} aria-label="Send recipe request">
+                <SendIcon />
+              </button>
+            </div>
+            <p className="disclaimer">Chef AI can make mistakes. Always check ingredient allergies.</p>
           </div>
         </section>
 
