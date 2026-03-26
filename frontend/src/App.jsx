@@ -553,13 +553,13 @@ export default function App() {
     conversations.find((conversation) => conversation.id === currentConversationId)?.title;
 
   const themeStyle = {
-    "--bg-page": timeTheme.bgPage,
-    "--bg-panel": timeTheme.bgPanel,
-    "--bg-panel-strong": timeTheme.bgPanelStrong,
-    "--bg-card": timeTheme.bgCard,
-    "--bg-card-hover": timeTheme.bgCardHover,
-    "--nav-surface": timeTheme.navSurface,
-    "--nav-surface-strong": timeTheme.navSurfaceStrong,
+    "--bg-page": "#050505",
+    "--bg-panel": "#101014",
+    "--bg-panel-strong": "#15151c",
+    "--bg-card": "#181820",
+    "--bg-card-hover": "#20202a",
+    "--nav-surface": "#0d0d12",
+    "--nav-surface-strong": "#12121a",
     "--text-main": timeTheme.textMain,
     "--text-muted": timeTheme.textMuted,
     "--border-soft": timeTheme.borderSoft,
