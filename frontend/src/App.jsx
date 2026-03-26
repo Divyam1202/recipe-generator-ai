@@ -32,12 +32,14 @@ const SendIcon = () => (
     <polygon points="22 2 15 22 11 13 2 9 22 2" />
   </svg>
 );
+
 const PlusIcon = () => (
   <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="18" width="18">
     <line x1="12" y1="5" x2="12" y2="19" />
     <line x1="5" y1="12" x2="19" y2="12" />
   </svg>
 );
+
 const MenuIcon = () => (
   <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="24" width="24">
     <line x1="3" y1="12" x2="21" y2="12" />
@@ -45,6 +47,7 @@ const MenuIcon = () => (
     <line x1="3" y1="18" x2="21" y2="18" />
   </svg>
 );
+
 const TrashIcon = () => (
   <svg stroke="currentColor" fill="none" strokeWidth="2" viewBox="0 0 24 24" height="16" width="16">
     <polyline points="3 6 5 6 21 6" />
@@ -54,19 +57,6 @@ const TrashIcon = () => (
     <path d="M9 6V4h6v2" />
   </svg>
 );
-
-const SUGGESTIONS = [
-  "chicken, garlic, onions, tomato",
-  "pasta, cream, mushrooms, butter",
-  "rice, eggs, soy sauce, vegetables",
-  "salmon, lemon, dill, olive oil"
-];
-
-const formatTime = (timestamp) =>
-  new Date(timestamp).toLocaleTimeString([], {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
 
 export default function App() {
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth > 900);
@@ -80,103 +70,13 @@ export default function App() {
   const [timePhase, setTimePhase] = useState(getTimePhase());
   const chatViewportRef = useRef(null);
 
+  // Scroll to bottom when messages change
   useEffect(() => {
-<<<<<<< HEAD
-    scrollToBottom();
-  }, [messages, loading]);
-
-  const persistMessagesToConversation = (convId, conversationMessages) => {
-    setConversations((prev) =>
-      prev.map((conv) =>
-        conv.id === convId
-          ? {
-              ...conv,
-              messages: conversationMessages,
-              timestamp: new Date(),
-              title: conversationMessages[0]?.content?.slice(0, 34) || "New conversation"
-            }
-          : conv
-      )
-    );
-  };
-
-  const generateRecipe = async () => {
-    if (!ingredients.trim() || loading) return;
-
-    const now = Date.now();
-    const userMessage = {
-      id: now,
-      type: "user",
-      content: ingredients.trim(),
-      timestamp: new Date().toISOString()
-    };
-
-    const updatedMessages = [...messages, userMessage];
-    setMessages(updatedMessages);
-    setIngredients("");
-    setLoading(true);
-    setError("");
-
-    let activeConversationId = currentConversationId;
-    if (!activeConversationId) {
-      activeConversationId = now + 5;
-      setCurrentConversationId(activeConversationId);
-      setConversations((prev) => [
-        {
-          id: activeConversationId,
-          title: userMessage.content.slice(0, 34),
-          timestamp: new Date(),
-          messages: [userMessage]
-        },
-        ...prev
-      ]);
-    } else {
-      persistMessagesToConversation(activeConversationId, updatedMessages);
-    }
-
-    try {
-      const res = await fetch("http://127.0.0.1:8000/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ ingredients: userMessage.content })
-      });
-
-      if (!res.ok) throw new Error("Failed to generate recipe");
-
-      const data = await res.json();
-
-      let recipeImage = "";
-      try {
-        const ingredientsList = userMessage.content.split(",")[0].trim();
-        const imageRes = await fetch(
-          `https://api.unsplash.com/search/photos?query=${ingredientsList}%20food&count=1&client_id=kmL92F3P3aQDkr7Xd01fRhKH_aXaOc0kKYvtJTRHaXk`
-        );
-        const imageData = await imageRes.json();
-        if (imageData.results?.length > 0) {
-          recipeImage = imageData.results[0].urls.regular;
-        }
-      } catch {
-        console.log("Could not fetch image");
-      }
-
-      const aiMessage = {
-        id: now + 1,
-        type: "ai",
-        content: data.recipe,
-        image: recipeImage,
-        timestamp: new Date().toISOString()
-      };
-
-      const withResponse = [...updatedMessages, aiMessage];
-      setMessages(withResponse);
-      persistMessagesToConversation(activeConversationId, withResponse);
-=======
     if (!chatViewportRef.current) return;
     chatViewportRef.current.scrollTop = chatViewportRef.current.scrollHeight;
   }, [messages, loading, error]);
 
+  // Load conversation history from storage
   useEffect(() => {
     const savedState = window.localStorage.getItem(STORAGE_KEY);
     if (!savedState) return;
@@ -192,18 +92,12 @@ export default function App() {
           setMessages(activeConversation.messages ?? []);
         }
       }
->>>>>>> main
     } catch (err) {
       console.error("Storage parse error:", err);
     }
   }, []);
 
-<<<<<<< HEAD
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      generateRecipe();
-=======
+  // Save conversation history to storage
   useEffect(() => {
     window.localStorage.setItem(
       STORAGE_KEY,
@@ -211,11 +105,11 @@ export default function App() {
     );
   }, [conversations, currentConversationId]);
 
+  // Loader animation
   useEffect(() => {
     if (!loading) {
       setLoaderIndex(0);
       return undefined;
->>>>>>> main
     }
     const interval = window.setInterval(() => {
       setLoaderIndex((prev) => (prev + 1) % loaderTexts.length);
@@ -223,6 +117,7 @@ export default function App() {
     return () => window.clearInterval(interval);
   }, [loading]);
 
+  // Time phase update
   useEffect(() => {
     const interval = setInterval(() => {
       setTimePhase(getTimePhase());
@@ -234,10 +129,25 @@ export default function App() {
     setConversations((prev) => {
       const existing = prev.find((c) => c.id === conversationId);
       if (!existing) {
-        return [{ id: conversationId, title: fallbackTitle, messages: nextMessages, updatedAt: new Date().toISOString() }, ...prev];
+        return [
+          {
+            id: conversationId,
+            title: fallbackTitle,
+            messages: nextMessages,
+            updatedAt: new Date().toISOString(),
+          },
+          ...prev,
+        ];
       }
       return prev.map((c) =>
-        c.id === conversationId ? { ...c, title: c.title || fallbackTitle, messages: nextMessages, updatedAt: new Date().toISOString() } : c
+        c.id === conversationId
+          ? {
+              ...c,
+              title: c.title || fallbackTitle,
+              messages: nextMessages,
+              updatedAt: new Date().toISOString(),
+            }
+          : c
       );
     });
   };
@@ -249,22 +159,6 @@ export default function App() {
     setError("");
   };
 
-<<<<<<< HEAD
-  const loadConversation = (convId) => {
-    const conv = conversations.find((c) => c.id === convId);
-    if (conv) {
-      setCurrentConversationId(convId);
-      setMessages(conv.messages);
-      setError("");
-    }
-  };
-
-  const deleteConversation = (convId, e) => {
-    e.stopPropagation();
-    setConversations((prev) => prev.filter((c) => c.id !== convId));
-    if (currentConversationId === convId) {
-      startNewConversation();
-=======
   const loadConversation = (conversationId) => {
     const conversation = conversations.find((item) => item.id === conversationId);
     if (!conversation) return;
@@ -323,19 +217,25 @@ export default function App() {
       syncConversation(conversationId, updatedMessages, createTitle(userPrompt));
     } catch (requestError) {
       console.error("Backend connection failed:", requestError);
-      const fallbackMessage = { id: Date.now() + 1, type: "ai", content: "Mock Response: Here is your high-protein vegan lasagna recipe. Fix your python backend to see real results." };
+      const fallbackMessage = {
+        id: Date.now() + 1,
+        type: "ai",
+        content:
+          "Mock Response: Here is your high-protein vegan lasagna recipe. Fix your python backend to see real results.",
+      };
       const fallbackMessages = [...nextMessages, fallbackMessage];
       setMessages(fallbackMessages);
       setError("Backend not connected. Showing a mock response.");
       syncConversation(conversationId, fallbackMessages, createTitle(userPrompt));
     } finally {
       setLoading(false);
->>>>>>> main
     }
   };
 
+  // FIX: Guard Enter submit during IME composition
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
+    // Check if user is currently composing (e.g., with CJK IME)
+    if (event.key === "Enter" && !event.shiftKey && !event.nativeEvent.isComposing) {
       event.preventDefault();
       generateRecipe();
     }
@@ -346,18 +246,6 @@ export default function App() {
     : "New recipe chat";
 
   return (
-<<<<<<< HEAD
-    <div className="app">
-      <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
-        <div className="sidebar-header">
-          <h2 className="sidebar-title">RecipeAI</h2>
-          <button
-            className="sidebar-toggle"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            aria-label="Toggle sidebar"
-          >
-            {sidebarOpen ? "←" : "→"}
-=======
     <div className={`app-shell theme-${timePhase}`}>
       {/* Sidebar Overlay for Mobile */}
       <div className={`sidebar-overlay ${sidebarOpen ? "visible" : ""}`} onClick={() => setSidebarOpen(false)} />
@@ -365,44 +253,12 @@ export default function App() {
       {/* Side Navigation Bar */}
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
-          <button className="icon-btn" onClick={() => setSidebarOpen(false)}>
+          <button className="icon-btn" onClick={() => setSidebarOpen(false)} aria-label="Close sidebar">
             <MenuIcon />
->>>>>>> main
           </button>
         </div>
-        
-        <button className="new-chat-btn" onClick={startNewConversation}>
-<<<<<<< HEAD
-          + New chat
-        </button>
 
-        <div className="conversations-section">
-          <div className="conversations-label">Recent chats</div>
-          <div className="conversations-list">
-            {conversations.length === 0 ? (
-              <div className="empty-state">No chats yet</div>
-            ) : (
-              conversations.map((conv) => (
-                <button
-                  key={conv.id}
-                  className={`conversation-item ${
-                    currentConversationId === conv.id ? "active" : ""
-                  }`}
-                  onClick={() => loadConversation(conv.id)}
-                >
-                  <div className="conversation-meta">
-                    <div className="conversation-title">{conv.title}</div>
-                    <div className="conversation-time">{formatTime(conv.timestamp)}</div>
-                  </div>
-                  <span
-                    className="delete-conv-btn"
-                    onClick={(e) => deleteConversation(conv.id, e)}
-                    aria-label="Delete conversation"
-                  >
-                    ✕
-                  </span>
-                </button>
-=======
+        <button className="new-chat-btn" onClick={startNewConversation}>
           <PlusIcon />
           <span>New Recipe</span>
         </button>
@@ -411,117 +267,40 @@ export default function App() {
           <div className="sidebar-heading-row">
             <span className="sidebar-heading">Recent</span>
             {conversations.length > 0 && (
-              <button className="clear-history-btn" onClick={clearHistory}>Clear</button>
+              <button className="clear-history-btn" onClick={clearHistory}>
+                Clear
+              </button>
             )}
           </div>
-          
+
           <div className="history-list">
             {conversations.length === 0 ? (
               <div className="history-empty">No recent chats.</div>
             ) : (
               conversations.map((conversation) => (
-                <div key={conversation.id} className={`history-item ${currentConversationId === conversation.id ? "active" : ""}`}>
+                <div
+                  key={conversation.id}
+                  className={`history-item ${
+                    currentConversationId === conversation.id ? "active" : ""
+                  }`}
+                >
                   <button className="history-main" onClick={() => loadConversation(conversation.id)}>
                     <span className="history-title">{conversation.title}</span>
                   </button>
-                  <button className="history-delete" onClick={() => deleteConversation(conversation.id)}>
+                  {/* FIX: Use accessible button instead of non-focusable span for delete */}
+                  <button
+                    className="history-delete"
+                    onClick={() => deleteConversation(conversation.id)}
+                    aria-label={`Delete conversation: ${conversation.title}`}
+                    title="Delete conversation"
+                  >
                     <TrashIcon />
                   </button>
                 </div>
->>>>>>> main
               ))
             )}
           </div>
         </div>
-<<<<<<< HEAD
-
-        {conversations.length > 0 && (
-          <div className="sidebar-footer">
-            <button className="clear-btn" onClick={clearAllConversations}>
-              Clear history
-            </button>
-          </div>
-        )}
-      </aside>
-
-      <main className="main-container">
-        <header className="chat-header">
-          <div className="chat-title-wrap">
-            <button
-              className="mobile-menu-btn"
-              onClick={() => setSidebarOpen(!sidebarOpen)}
-              aria-label="Toggle sidebar"
-            >
-              ☰
-            </button>
-            <div>
-              <h1>{conversationTitle || "New recipe chat"}</h1>
-              <p>Online chef assistant</p>
-            </div>
-          </div>
-          <div className="chat-status">Ready to cook</div>
-        </header>
-
-        <section className="chat-area">
-          {messages.length === 0 && !loading ? (
-            <div className="empty-chat-state">
-              <div className="welcome-badge">🍳 Chef online</div>
-              <h2>Drop ingredients, get a complete recipe in chat.</h2>
-              <p>
-                Designed like a messaging app so your recipe flow feels natural, fast, and easy to revisit.
-              </p>
-
-              <div className="suggestion-prompts">
-                {SUGGESTIONS.map((prompt) => (
-                  <button key={prompt} className="prompt-btn" onClick={() => setIngredients(prompt)}>
-                    {prompt}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ) : null}
-
-          <div className="messages-container">
-            {messages.map((msg) => (
-              <article
-                key={msg.id}
-                className={`message-row ${msg.type === "user" ? "user-row" : "ai-row"}`}
-              >
-                <div className={`message-bubble ${msg.type === "user" ? "user-bubble" : "ai-bubble"}`}>
-                  {msg.type === "ai" && msg.image ? (
-                    <div className="message-image">
-                      <img src={msg.image} alt="Recipe suggestion" />
-                    </div>
-                  ) : null}
-
-                  <div className="message-text">{msg.content}</div>
-
-                  <div className="message-footer">
-                    <span>{formatTime(msg.timestamp)}</span>
-                    {msg.type === "ai" && (
-                      <button
-                        className="action-btn"
-                        onClick={() => {
-                          navigator.clipboard.writeText(msg.content);
-                        }}
-                        title="Copy recipe"
-                      >
-                        Copy
-                      </button>
-                    )}
-                  </div>
-                </div>
-              </article>
-            ))}
-
-            {loading && (
-              <article className="message-row ai-row">
-                <div className="message-bubble ai-bubble loading-bubble">
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                  <span className="typing-dot" />
-                  <span className="loading-text">Chef is preparing your recipe...</span>
-=======
       </aside>
 
       {/* Main Content Wrapper */}
@@ -529,7 +308,7 @@ export default function App() {
         <header className="site-header">
           <div className="header-left">
             {!sidebarOpen && (
-              <button className="icon-btn" onClick={() => setSidebarOpen(true)}>
+              <button className="icon-btn" onClick={() => setSidebarOpen(true)} aria-label="Open sidebar">
                 <MenuIcon />
               </button>
             )}
@@ -570,46 +349,10 @@ export default function App() {
                     <div className="pulse-dot" />
                     <span>{loaderTexts[loaderIndex]}</span>
                   </div>
->>>>>>> main
                 </div>
-              </article>
+              </div>
             )}
 
-<<<<<<< HEAD
-            {error && (
-              <article className="message-row ai-row">
-                <div className="message-bubble ai-bubble error-bubble">{error}</div>
-              </article>
-            )}
-
-            <div ref={messagesEndRef} />
-          </div>
-        </section>
-
-        <footer className="input-area">
-          <div className="input-wrapper">
-            <textarea
-              className="message-input"
-              placeholder="Type ingredients like: chicken, onion, tomato"
-              value={ingredients}
-              onChange={(e) => setIngredients(e.target.value)}
-              onKeyDown={handleKeyDown}
-              disabled={loading}
-              rows="1"
-            />
-            <button
-              className="send-btn"
-              onClick={generateRecipe}
-              disabled={loading || !ingredients.trim()}
-              aria-label="Generate recipe"
-            >
-              {loading ? "..." : "➤"}
-            </button>
-          </div>
-          <p className="input-hint">Press Enter to send • Shift + Enter for new line.</p>
-        </footer>
-      </main>
-=======
             {error && <div className="status-message">{error}</div>}
           </div>
 
@@ -640,7 +383,6 @@ export default function App() {
           </div>
         </footer>
       </div>
->>>>>>> main
     </div>
   );
 }
