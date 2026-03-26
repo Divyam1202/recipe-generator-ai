@@ -321,11 +321,6 @@ export default function App() {
     : "New recipe chat";
 
   return (
-    <div className={`app-shell theme-${timePhase}`}>
-      {/* Sidebar Overlay for Mobile */}
-      <div className={`sidebar-overlay ${sidebarOpen ? "visible" : ""}`} onClick={() => setSidebarOpen(false)} />
-
-  return (
     <div className="app">
       <aside className={`sidebar ${sidebarOpen ? "open" : "closed"}`}>
         <div className="sidebar-header">
@@ -388,8 +383,8 @@ export default function App() {
             )}
             <h1 className="header-brand">Chef AI</h1>
           </div>
-        )}
-      </aside>
+        </header>
+      </div>
 
       <main className="main-container">
         <header className="chat-header">
@@ -477,6 +472,7 @@ export default function App() {
                 <div className="message-bubble ai-bubble error-bubble">{error}</div>
               </article>
             )}
+          </div>
 
           <div className="input-area">
             <div className="input-wrapper">
@@ -497,7 +493,7 @@ export default function App() {
           </div>
         </section>
 
-        <footer className="input-area">
+        <footer className="input-area" style={{display: 'none'}}>
           <div className="input-wrapper">
             <textarea
               className="message-input"
