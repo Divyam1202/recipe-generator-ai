@@ -5,6 +5,11 @@ RECIPE_MARKERS = (
     "Now write the complete detailed recipe with ALL sections",
     "Now write the recipe:",
 )
+RESPONSE_PREFIXES = (
+    "Assistant:",
+    "AI:",
+    "Chef AI:",
+)
 
 
 def strip_prompt_echo(prompt: str, generated_text: str) -> str:
@@ -21,6 +26,10 @@ def strip_prompt_echo(prompt: str, generated_text: str) -> str:
     for marker in RECIPE_MARKERS:
         if marker in recipe:
             recipe = recipe.rsplit(marker, maxsplit=1)[-1].strip()
+
+    for prefix in RESPONSE_PREFIXES:
+        if recipe.startswith(prefix):
+            recipe = recipe[len(prefix):].strip()
 
     return recipe
 

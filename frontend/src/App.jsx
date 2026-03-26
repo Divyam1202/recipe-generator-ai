@@ -214,7 +214,7 @@ export default function App() {
       const data = await apiCall("/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ingredients: userPrompt }),
+        body: JSON.stringify({ ingredients: userPrompt, messages: nextMessages }),
       });
 
       const aiMessage = { id: Date.now() + 1, type: "ai", content: data.recipe };
@@ -224,12 +224,9 @@ export default function App() {
       setError("");
     } catch (requestError) {
       console.error("Failed to generate recipe:", requestError);
-      const errorMessage = `Error: ${requestError.message || "Failed to generate recipe. Please try again."}`;
+      const errorMessage = `Error: ${requestError.message || "Failed to generate response. Please try again."}`;
       setError(errorMessage);
-      const fallbackMessage = { id: Date.now() + 1, type: "ai", content: errorMessage };
-      const fallbackMessages = [...nextMessages, fallbackMessage];
-      setMessages(fallbackMessages);
-      syncConversation(conversationId, fallbackMessages, createTitle(userPrompt));
+      setMessages(nextMessages);
     } finally {
       setLoading(false);
     }
