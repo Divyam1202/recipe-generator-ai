@@ -19,16 +19,16 @@ const LOADER_TEXTS = [
   "Finishing the final recipe...",
 ];
 
-const MECHANICAL_OMINOUS_COLD_THEME = {
-  backgroundTop: "rgba(90, 109, 138, 0.12)",
-  backgroundBottom: "rgba(60, 78, 104, 0.1)",
-  backgroundCenter: "rgba(180, 198, 222, 0.02)",
-  accent: "#b3c0d4",
-  accentStrong: "#7f97b8",
-  accentCool: "#8ea7bd",
-  textMuted: "#7f8ea3",
-  glowWarm: "rgba(122, 139, 165, 0.05)",
-  glowCool: "rgba(84, 104, 129, 0.05)",
+const MIXED_CHATBOT_THEME = {
+  backgroundTop: "rgba(166, 180, 255, 0.14)",
+  backgroundBottom: "rgba(255, 148, 164, 0.11)",
+  backgroundCenter: "rgba(135, 215, 206, 0.03)",
+  accent: "#d8ddff",
+  accentStrong: "#ff93a8",
+  accentCool: "#84d4cf",
+  textMuted: "#9ca5c6",
+  glowWarm: "rgba(255, 147, 168, 0.07)",
+  glowCool: "rgba(132, 212, 207, 0.06)",
 };
 
 const createTitle = (text) => {
@@ -383,15 +383,15 @@ export default function App() {
     conversations.find((conversation) => conversation.id === currentConversationId)?.title;
 
   const themeStyle = {
-    "--theme-top": MECHANICAL_OMINOUS_COLD_THEME.backgroundTop,
-    "--theme-bottom": MECHANICAL_OMINOUS_COLD_THEME.backgroundBottom,
-    "--theme-center": MECHANICAL_OMINOUS_COLD_THEME.backgroundCenter,
-    "--accent": MECHANICAL_OMINOUS_COLD_THEME.accent,
-    "--accent-strong": MECHANICAL_OMINOUS_COLD_THEME.accentStrong,
-    "--accent-cool": MECHANICAL_OMINOUS_COLD_THEME.accentCool,
-    "--text-muted": MECHANICAL_OMINOUS_COLD_THEME.textMuted,
-    "--glow-warm": MECHANICAL_OMINOUS_COLD_THEME.glowWarm,
-    "--glow-cool": MECHANICAL_OMINOUS_COLD_THEME.glowCool,
+    "--theme-top": MIXED_CHATBOT_THEME.backgroundTop,
+    "--theme-bottom": MIXED_CHATBOT_THEME.backgroundBottom,
+    "--theme-center": MIXED_CHATBOT_THEME.backgroundCenter,
+    "--accent": MIXED_CHATBOT_THEME.accent,
+    "--accent-strong": MIXED_CHATBOT_THEME.accentStrong,
+    "--accent-cool": MIXED_CHATBOT_THEME.accentCool,
+    "--text-muted": MIXED_CHATBOT_THEME.textMuted,
+    "--glow-warm": MIXED_CHATBOT_THEME.glowWarm,
+    "--glow-cool": MIXED_CHATBOT_THEME.glowCool,
   };
 
   return (

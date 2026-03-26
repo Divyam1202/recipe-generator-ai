@@ -1,25 +1,25 @@
 :root {
   font-family: "Inter", "Segoe UI", sans-serif;
   color: #f4f7fb;
-  background: linear-gradient(180deg, #0a1220 0%, #0d1725 46%, #101b2b 100%);
+  background: linear-gradient(180deg, #121327 0%, #171934 48%, #1b1830 100%);
   color-scheme: dark;
-  --bg-page: #08111f;
-  --bg-panel: #0d1725;
-  --bg-panel-strong: #111c2b;
-  --bg-card: #131e2d;
-  --bg-card-hover: #182435;
+  --bg-page: #121327;
+  --bg-panel: #171a31;
+  --bg-panel-strong: #1e213a;
+  --bg-card: #212541;
+  --bg-card-hover: #292e4d;
   --border-soft: rgba(255, 255, 255, 0.1);
   --border-strong: rgba(255, 255, 255, 0.18);
   --text-main: #f8fafc;
   --text-muted: #9eb0c5;
-  --accent: #b3c0d4;
-  --accent-strong: #7f97b8;
-  --accent-cool: #8ea7bd;
-  --theme-top: rgba(90, 109, 138, 0.12);
-  --theme-bottom: rgba(60, 78, 104, 0.1);
-  --theme-center: rgba(180, 198, 222, 0.02);
-  --glow-warm: rgba(122, 139, 165, 0.05);
-  --glow-cool: rgba(84, 104, 129, 0.05);
+  --accent: #d8ddff;
+  --accent-strong: #ff93a8;
+  --accent-cool: #84d4cf;
+  --theme-top: rgba(166, 180, 255, 0.14);
+  --theme-bottom: rgba(255, 148, 164, 0.11);
+  --theme-center: rgba(135, 215, 206, 0.03);
+  --glow-warm: rgba(255, 147, 168, 0.07);
+  --glow-cool: rgba(132, 212, 207, 0.06);
   --shadow-soft: 0 24px 60px rgba(2, 6, 23, 0.35);
 }
 
@@ -65,7 +65,9 @@ input {
   grid-template-columns: 320px minmax(0, 1fr);
   overflow-x: hidden;
   background:
-    linear-gradient(180deg, #09111d 0%, #0c1624 42%, #101b2a 100%);
+    radial-gradient(circle at top left, var(--theme-top), transparent 28%),
+    radial-gradient(circle at bottom right, var(--theme-bottom), transparent 32%),
+    linear-gradient(180deg, #121327 0%, #171933 50%, #1b1830 100%);
   transition: grid-template-columns 0.26s ease;
 }
 
@@ -82,7 +84,7 @@ input {
   flex-direction: column;
   gap: 1.25rem;
   padding: 1.5rem;
-  background: #0a1322;
+  background: #16182f;
   border-right: 1px solid var(--border-soft);
   transition: transform 0.24s ease, opacity 0.24s ease;
   overflow: hidden;
@@ -129,7 +131,7 @@ input {
   align-items: center;
   justify-content: center;
   border-radius: 0.95rem;
-  background: #111b2d;
+  background: #262a46;
   border: 1px solid var(--border-soft);
   transition: background 0.2s ease, transform 0.2s ease;
 }
@@ -170,10 +172,10 @@ input {
   min-width: 0;
   padding: 0.72rem 0.9rem;
   border-radius: 999px;
-  background: #111a2b;
-  border: 1px solid color-mix(in srgb, var(--accent) 28%, rgba(255, 255, 255, 0.08));
+  background: linear-gradient(135deg, #272b48, #1f223b);
+  border: 1px solid color-mix(in srgb, var(--accent-strong) 20%, rgba(255, 255, 255, 0.08));
   font-weight: 500;
-  color: color-mix(in srgb, var(--accent) 74%, white);
+  color: color-mix(in srgb, var(--accent) 86%, white);
 }
 
 .new-chat-label {
@@ -217,12 +219,12 @@ input {
   gap: 0.45rem;
   padding: 0.35rem;
   border-radius: 1rem;
-  background: #10192b;
+  background: #1b1f37;
   border: 1px solid transparent;
 }
 
 .history-item.active {
-  background: #162238;
+  background: #262a46;
   border-color: color-mix(in srgb, var(--accent-strong) 32%, transparent);
 }
 
@@ -256,7 +258,7 @@ input {
   align-items: center;
   justify-content: center;
   border-radius: 0.85rem;
-  color: #fca5a5;
+  color: color-mix(in srgb, var(--accent-strong) 78%, white);
 }
 
 .empty-history {
@@ -265,7 +267,7 @@ input {
   text-align: center;
   border: 1px dashed rgba(255, 255, 255, 0.14);
   border-radius: 1rem;
-  background: #0f1828;
+  background: #1a1e35;
 }
 
 .main-panel {
@@ -282,10 +284,10 @@ input {
   pointer-events: none;
   background: linear-gradient(
     180deg,
-    color-mix(in srgb, var(--accent-cool) 4%, transparent),
+    color-mix(in srgb, var(--accent-cool) 8%, transparent),
     transparent 20%,
     transparent 80%,
-    color-mix(in srgb, var(--accent-strong) 4%, transparent)
+    color-mix(in srgb, var(--accent-strong) 7%, transparent)
   );
 }
 
@@ -298,7 +300,7 @@ input {
   justify-content: space-between;
   gap: 1rem;
   padding: 1.2rem 1.8rem 0.9rem;
-  background: linear-gradient(180deg, #08111f, #08111fe6 78%, transparent);
+  background: linear-gradient(180deg, #121327, #121327e8 78%, transparent);
 }
 
 .topbar-side {
@@ -348,9 +350,9 @@ input {
 .status-pill {
   border-radius: 999px;
   padding: 0.55rem 0.9rem;
-  background: color-mix(in srgb, var(--accent-cool) 14%, transparent);
-  color: color-mix(in srgb, var(--accent-cool) 70%, white);
-  border: 1px solid color-mix(in srgb, var(--accent-cool) 24%, transparent);
+  background: color-mix(in srgb, var(--accent-cool) 18%, transparent);
+  color: color-mix(in srgb, var(--accent-cool) 78%, white);
+  border: 1px solid color-mix(in srgb, var(--accent-cool) 30%, transparent);
   font-size: 0.82rem;
 }
 
@@ -404,7 +406,7 @@ input {
   margin-bottom: 0.4rem;
   overflow: hidden;
   padding: 0.35rem 0;
-  background: linear-gradient(180deg, #08111f, #08111fe0 72%, transparent);
+  background: linear-gradient(180deg, #121327, #121327e6 72%, transparent);
   mask-image: linear-gradient(to right, transparent, black 8%, black 92%, transparent);
 }
 
@@ -431,14 +433,14 @@ input {
 .suggestion-chip {
   padding: 0.6rem 0.85rem;
   border-radius: 999px;
-  background: #101a2b;
-  border: 1px solid color-mix(in srgb, var(--accent) 22%, var(--border-soft));
+  background: #212541;
+  border: 1px solid color-mix(in srgb, var(--accent-cool) 18%, var(--border-soft));
   color: var(--text-main);
   font-size: 0.8rem;
 }
 
 .suggestion-chip-bar {
-  background: #0f1828;
+  background: #1b1f37;
   font-size: 0.76rem;
 }
 
@@ -467,13 +469,13 @@ input {
 .messages::before {
   top: 0;
   margin-bottom: -2.5rem;
-  background: linear-gradient(180deg, #08111f, transparent);
+  background: linear-gradient(180deg, #121327, transparent);
 }
 
 .messages::after {
   bottom: 0;
   margin-top: -2.5rem;
-  background: linear-gradient(0deg, #08111f, transparent);
+  background: linear-gradient(0deg, #121327, transparent);
 }
 
 .message-row {
@@ -496,11 +498,11 @@ input {
 }
 
 .ai-bubble {
-  background: #0f192b;
+  background: #1b1f37;
 }
 
 .user-bubble {
-  background: linear-gradient(135deg, #6f849f, #55667d);
+  background: linear-gradient(135deg, #7f91ff, #ff93a8);
   border-color: transparent;
 }
 
@@ -556,7 +558,7 @@ input {
 
 .error-bubble {
   border-color: rgba(248, 113, 113, 0.45);
-  background: #3a1820;
+  background: #4b2132;
   color: #fecaca;
 }
 
@@ -565,7 +567,7 @@ input {
   bottom: 0;
   z-index: 4;
   padding: 0.85rem 0 1rem;
-  background: linear-gradient(0deg, #08111f, #08111fe6 70%, transparent);
+  background: linear-gradient(0deg, #121327, #121327e6 70%, transparent);
 }
 
 .composer-shell {
@@ -574,8 +576,8 @@ input {
   gap: 0.85rem;
   padding: 0.45rem 0.45rem 0.45rem 1rem;
   border-radius: 1.1rem;
-  background: #0f192b;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1b1f37;
+  border: 1px solid color-mix(in srgb, var(--accent-cool) 16%, rgba(255, 255, 255, 0.08));
 }
 
 .composer-shell:focus-within {
@@ -600,7 +602,7 @@ input {
   align-items: center;
   justify-content: center;
   border-radius: 1rem;
-  background: linear-gradient(135deg, var(--accent), var(--accent-strong));
+  background: linear-gradient(135deg, #84d4cf, #ff93a8);
   color: white;
 }
 
@@ -630,7 +632,7 @@ input {
 }
 
 .footer-copy {
-  color: color-mix(in srgb, var(--accent) 54%, white);
+  color: color-mix(in srgb, var(--accent-cool) 58%, white);
 }
 
 .footer-note {
