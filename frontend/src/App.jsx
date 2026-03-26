@@ -19,17 +19,178 @@ const LOADER_TEXTS = [
   "Finishing the final recipe...",
 ];
 
-const MIXED_CHATBOT_THEME = {
-  backgroundTop: "rgba(166, 180, 255, 0.14)",
-  backgroundBottom: "rgba(255, 148, 164, 0.11)",
-  backgroundCenter: "rgba(135, 215, 206, 0.03)",
-  accent: "#d8ddff",
-  accentStrong: "#ff93a8",
-  accentCool: "#84d4cf",
-  textMuted: "#9ca5c6",
-  glowWarm: "rgba(255, 147, 168, 0.07)",
-  glowCool: "rgba(132, 212, 207, 0.06)",
-};
+const TIME_THEMES = [
+  {
+    bgPage: "#f5f0ff",
+    bgPanel: "#ffffff",
+    bgPanelStrong: "#f3ecff",
+    bgCard: "#f7f3ff",
+    bgCardHover: "#efe7ff",
+    navSurface: "#ede4ff",
+    navSurfaceStrong: "#e4d8ff",
+    textMain: "#2d2447",
+    textMuted: "#7d73a3",
+    borderSoft: "rgba(122, 99, 169, 0.16)",
+    borderStrong: "rgba(122, 99, 169, 0.26)",
+    accent: "#8d7cff",
+    accentStrong: "#ff8fa9",
+    accentCool: "#7ed8cf",
+    themeTop: "rgba(141, 124, 255, 0.18)",
+    themeBottom: "rgba(255, 143, 169, 0.14)",
+    themeCenter: "rgba(126, 216, 207, 0.05)",
+    glowWarm: "rgba(255, 143, 169, 0.08)",
+    glowCool: "rgba(126, 216, 207, 0.08)",
+  },
+  {
+    bgPage: "#efeaff",
+    bgPanel: "#faf7ff",
+    bgPanelStrong: "#eee7ff",
+    bgCard: "#f3edff",
+    bgCardHover: "#ebe3ff",
+    navSurface: "#e8defd",
+    navSurfaceStrong: "#ddd0fb",
+    textMain: "#30284b",
+    textMuted: "#7f77a0",
+    borderSoft: "rgba(111, 91, 160, 0.16)",
+    borderStrong: "rgba(111, 91, 160, 0.26)",
+    accent: "#8d7cff",
+    accentStrong: "#ff88a3",
+    accentCool: "#79d0c6",
+    themeTop: "rgba(141, 124, 255, 0.16)",
+    themeBottom: "rgba(255, 136, 163, 0.13)",
+    themeCenter: "rgba(121, 208, 198, 0.045)",
+    glowWarm: "rgba(255, 136, 163, 0.075)",
+    glowCool: "rgba(121, 208, 198, 0.075)",
+  },
+  {
+    bgPage: "#e7e2fb",
+    bgPanel: "#f2edff",
+    bgPanelStrong: "#e5ddfb",
+    bgCard: "#ebe4ff",
+    bgCardHover: "#e0d8fb",
+    navSurface: "#ddd4f7",
+    navSurfaceStrong: "#d3c8f2",
+    textMain: "#332b4d",
+    textMuted: "#7b7398",
+    borderSoft: "rgba(94, 80, 139, 0.16)",
+    borderStrong: "rgba(94, 80, 139, 0.26)",
+    accent: "#8a79f0",
+    accentStrong: "#ff819d",
+    accentCool: "#70c8bf",
+    themeTop: "rgba(138, 121, 240, 0.15)",
+    themeBottom: "rgba(255, 129, 157, 0.12)",
+    themeCenter: "rgba(112, 200, 191, 0.04)",
+    glowWarm: "rgba(255, 129, 157, 0.07)",
+    glowCool: "rgba(112, 200, 191, 0.07)",
+  },
+  {
+    bgPage: "#d9d3f0",
+    bgPanel: "#e7e1fa",
+    bgPanelStrong: "#d9d0f0",
+    bgCard: "#ddd5f4",
+    bgCardHover: "#d0c7e8",
+    navSurface: "#cfc4e7",
+    navSurfaceStrong: "#c1b3de",
+    textMain: "#342d4b",
+    textMuted: "#776f8f",
+    borderSoft: "rgba(83, 70, 122, 0.17)",
+    borderStrong: "rgba(83, 70, 122, 0.28)",
+    accent: "#8573df",
+    accentStrong: "#ff7a98",
+    accentCool: "#68beb5",
+    themeTop: "rgba(133, 115, 223, 0.14)",
+    themeBottom: "rgba(255, 122, 152, 0.11)",
+    themeCenter: "rgba(104, 190, 181, 0.035)",
+    glowWarm: "rgba(255, 122, 152, 0.065)",
+    glowCool: "rgba(104, 190, 181, 0.065)",
+  },
+  {
+    bgPage: "#2a2440",
+    bgPanel: "#302947",
+    bgPanelStrong: "#37304f",
+    bgCard: "#3b3455",
+    bgCardHover: "#463e63",
+    navSurface: "#241f39",
+    navSurfaceStrong: "#1f1a31",
+    textMain: "#f4efff",
+    textMuted: "#b0a6cf",
+    borderSoft: "rgba(226, 215, 255, 0.12)",
+    borderStrong: "rgba(226, 215, 255, 0.22)",
+    accent: "#b9adff",
+    accentStrong: "#ff8ca8",
+    accentCool: "#7dd2c8",
+    themeTop: "rgba(185, 173, 255, 0.13)",
+    themeBottom: "rgba(255, 140, 168, 0.1)",
+    themeCenter: "rgba(125, 210, 200, 0.03)",
+    glowWarm: "rgba(255, 140, 168, 0.06)",
+    glowCool: "rgba(125, 210, 200, 0.055)",
+  },
+  {
+    bgPage: "#211c35",
+    bgPanel: "#27213d",
+    bgPanelStrong: "#2d2644",
+    bgCard: "#322b4a",
+    bgCardHover: "#3a3155",
+    navSurface: "#1b172d",
+    navSurfaceStrong: "#171326",
+    textMain: "#f6f2ff",
+    textMuted: "#aba1ca",
+    borderSoft: "rgba(225, 216, 255, 0.11)",
+    borderStrong: "rgba(225, 216, 255, 0.2)",
+    accent: "#b7a8ff",
+    accentStrong: "#ff89a6",
+    accentCool: "#77c8c0",
+    themeTop: "rgba(183, 168, 255, 0.12)",
+    themeBottom: "rgba(255, 137, 166, 0.095)",
+    themeCenter: "rgba(119, 200, 192, 0.028)",
+    glowWarm: "rgba(255, 137, 166, 0.055)",
+    glowCool: "rgba(119, 200, 192, 0.05)",
+  },
+  {
+    bgPage: "#181426",
+    bgPanel: "#1e1930",
+    bgPanelStrong: "#241d38",
+    bgCard: "#2a2240",
+    bgCardHover: "#31284a",
+    navSurface: "#141021",
+    navSurfaceStrong: "#100d1a",
+    textMain: "#f7f3ff",
+    textMuted: "#a69cc4",
+    borderSoft: "rgba(225, 216, 255, 0.1)",
+    borderStrong: "rgba(225, 216, 255, 0.18)",
+    accent: "#b19fff",
+    accentStrong: "#ff85a3",
+    accentCool: "#72c0b8",
+    themeTop: "rgba(177, 159, 255, 0.11)",
+    themeBottom: "rgba(255, 133, 163, 0.09)",
+    themeCenter: "rgba(114, 192, 184, 0.024)",
+    glowWarm: "rgba(255, 133, 163, 0.05)",
+    glowCool: "rgba(114, 192, 184, 0.045)",
+  },
+  {
+    bgPage: "#100d18",
+    bgPanel: "#151120",
+    bgPanelStrong: "#1a1527",
+    bgCard: "#20192f",
+    bgCardHover: "#281f3a",
+    navSurface: "#0c0914",
+    navSurfaceStrong: "#08060f",
+    textMain: "#faf7ff",
+    textMuted: "#9d94ba",
+    borderSoft: "rgba(225, 216, 255, 0.09)",
+    borderStrong: "rgba(225, 216, 255, 0.16)",
+    accent: "#ad99ff",
+    accentStrong: "#ff7e9e",
+    accentCool: "#6cb8b0",
+    themeTop: "rgba(173, 153, 255, 0.1)",
+    themeBottom: "rgba(255, 126, 158, 0.085)",
+    themeCenter: "rgba(108, 184, 176, 0.02)",
+    glowWarm: "rgba(255, 126, 158, 0.045)",
+    glowCool: "rgba(108, 184, 176, 0.04)",
+  },
+];
+
+const getTimeTheme = () => TIME_THEMES[Math.floor(new Date().getHours() / 3)];
 
 const createTitle = (text) => {
   const cleaned = text.replace(/\s+/g, " ").trim();
@@ -116,6 +277,7 @@ export default function App() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [loadingTextIndex, setLoadingTextIndex] = useState(0);
+  const [timeTheme, setTimeTheme] = useState(getTimeTheme);
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -207,6 +369,14 @@ export default function App() {
 
     window.addEventListener("resize", onResize);
     return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
+    const interval = window.setInterval(() => {
+      setTimeTheme(getTimeTheme());
+    }, 60000);
+
+    return () => window.clearInterval(interval);
   }, []);
 
   const syncConversation = (conversationId, nextMessages, fallbackTitle) => {
@@ -383,15 +553,25 @@ export default function App() {
     conversations.find((conversation) => conversation.id === currentConversationId)?.title;
 
   const themeStyle = {
-    "--theme-top": MIXED_CHATBOT_THEME.backgroundTop,
-    "--theme-bottom": MIXED_CHATBOT_THEME.backgroundBottom,
-    "--theme-center": MIXED_CHATBOT_THEME.backgroundCenter,
-    "--accent": MIXED_CHATBOT_THEME.accent,
-    "--accent-strong": MIXED_CHATBOT_THEME.accentStrong,
-    "--accent-cool": MIXED_CHATBOT_THEME.accentCool,
-    "--text-muted": MIXED_CHATBOT_THEME.textMuted,
-    "--glow-warm": MIXED_CHATBOT_THEME.glowWarm,
-    "--glow-cool": MIXED_CHATBOT_THEME.glowCool,
+    "--bg-page": timeTheme.bgPage,
+    "--bg-panel": timeTheme.bgPanel,
+    "--bg-panel-strong": timeTheme.bgPanelStrong,
+    "--bg-card": timeTheme.bgCard,
+    "--bg-card-hover": timeTheme.bgCardHover,
+    "--nav-surface": timeTheme.navSurface,
+    "--nav-surface-strong": timeTheme.navSurfaceStrong,
+    "--text-main": timeTheme.textMain,
+    "--text-muted": timeTheme.textMuted,
+    "--border-soft": timeTheme.borderSoft,
+    "--border-strong": timeTheme.borderStrong,
+    "--theme-top": timeTheme.themeTop,
+    "--theme-bottom": timeTheme.themeBottom,
+    "--theme-center": timeTheme.themeCenter,
+    "--accent": timeTheme.accent,
+    "--accent-strong": timeTheme.accentStrong,
+    "--accent-cool": timeTheme.accentCool,
+    "--glow-warm": timeTheme.glowWarm,
+    "--glow-cool": timeTheme.glowCool,
   };
 
   return (
