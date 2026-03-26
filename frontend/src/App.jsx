@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./index.css";
-import { apiCall, API_URL } from "./api";
+import { apiCall } from "./api";
 
 const STORAGE_KEY = "chef-ai-history";
 
@@ -214,7 +214,7 @@ export default function App() {
       const data = await apiCall("/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ingredients: userPrompt }),
+        body: JSON.stringify({ ingredients: userPrompt, messages: nextMessages }),
       });
 
       const aiMessage = { id: Date.now() + 1, type: "ai", content: data.recipe };
@@ -224,12 +224,9 @@ export default function App() {
       setError("");
     } catch (requestError) {
       console.error("Failed to generate recipe:", requestError);
-      const errorMessage = `Error: ${requestError.message || "Failed to generate recipe. Please try again."}`;
+      const errorMessage = `Error: ${requestError.message || "Failed to generate response. Please try again."}`;
       setError(errorMessage);
-      const fallbackMessage = { id: Date.now() + 1, type: "ai", content: errorMessage };
-      const fallbackMessages = [...nextMessages, fallbackMessage];
-      setMessages(fallbackMessages);
-      syncConversation(conversationId, fallbackMessages, createTitle(userPrompt));
+      setMessages(nextMessages);
     } finally {
       setLoading(false);
     }
@@ -360,7 +357,7 @@ export default function App() {
         </main>
 
         <footer className="site-footer">
-          <p>© {new Date().getFullYear()} Chef AI Studio. Modern Kitchen Workspace.</p>
+          <p>&copy; {new Date().getFullYear()} Chef AI Studio. Modern Kitchen Workspace.</p>
           <div className="footer-links">
             <span>Terms</span>
             <span>Privacy</span>

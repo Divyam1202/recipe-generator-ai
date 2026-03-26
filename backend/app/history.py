@@ -1,5 +1,4 @@
 import json
-import os
 from datetime import datetime
 from pathlib import Path
 
@@ -8,7 +7,7 @@ HISTORY_FILE = Path(__file__).parent.parent / "data" / "history.json"
 
 def ensure_history_dir():
     """Ensure the history directory exists."""
-    HISTORY_FILE.parent.mkdir(exist_ok=True)
+    HISTORY_FILE.parent.mkdir(parents=True, exist_ok=True)
 
 
 def load_history():
@@ -16,7 +15,7 @@ def load_history():
     ensure_history_dir()
     if HISTORY_FILE.exists():
         try:
-            with open(HISTORY_FILE, "r") as f:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
                 return json.load(f)
         except Exception as e:
             print(f"Error loading history: {e}")
@@ -28,7 +27,7 @@ def save_history(conversations):
     """Save all conversations to file."""
     ensure_history_dir()
     try:
-        with open(HISTORY_FILE, "w") as f:
+        with open(HISTORY_FILE, "w", encoding="utf-8") as f:
             json.dump(conversations, f, indent=2)
     except Exception as e:
         print(f"Error saving history: {e}")
