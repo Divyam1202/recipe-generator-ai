@@ -449,23 +449,25 @@ export default function App() {
 
       <main className="main-panel">
         <header className="topbar">
-          <div className="topbar-title">
-            {!sidebarOpen ? (
-              <button
-                className="icon-btn"
-                onClick={() => setSidebarOpen(true)}
-                aria-label="Open sidebar"
-                type="button"
-              >
-                <MenuIcon />
-              </button>
-            ) : null}
-            <div>
-              <p className="eyebrow">Kitchen assistant</p>
-              <h2>{activeConversationTitle || "New recipe chat"}</h2>
-            </div>
+          <div className="topbar-side">
+            <button
+              className="icon-btn"
+              onClick={() => setSidebarOpen((previous) => !previous)}
+              aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+              type="button"
+            >
+              <MenuIcon />
+            </button>
           </div>
-          <div className="status-pill">Ready</div>
+
+          <div className="topbar-center">
+            <p className="brand-title">CHEF ASSISTANT</p>
+            <h2 className="chat-name">{activeConversationTitle || "New recipe chat"}</h2>
+          </div>
+
+          <div className="topbar-side topbar-side-end">
+            <div className="status-pill">Ready</div>
+          </div>
         </header>
 
         <section className="chat-panel">
@@ -478,17 +480,31 @@ export default function App() {
                 same chat.
               </p>
 
-              <div className="suggestions">
-                {SUGGESTIONS.map((prompt) => (
-                  <button
-                    key={prompt}
-                    className="suggestion-chip"
-                    onClick={() => setIngredients(prompt)}
-                    type="button"
-                  >
-                    {prompt}
-                  </button>
-                ))}
+              <div className="suggestions-marquee">
+                <div className="suggestions-track">
+                  {SUGGESTIONS.map((prompt) => (
+                    <button
+                      key={prompt}
+                      className="suggestion-chip"
+                      onClick={() => setIngredients(prompt)}
+                      type="button"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                  {SUGGESTIONS.map((prompt) => (
+                    <button
+                      key={`${prompt}-duplicate`}
+                      className="suggestion-chip"
+                      onClick={() => setIngredients(prompt)}
+                      type="button"
+                      tabIndex={-1}
+                      aria-hidden="true"
+                    >
+                      {prompt}
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           ) : null}
@@ -564,11 +580,16 @@ export default function App() {
                 <SendIcon />
               </button>
             </div>
-            <p className="composer-note">
-              Chef AI can make mistakes. Double-check allergens, temperatures, and substitutions.
-            </p>
           </div>
         </section>
+
+        <footer className="site-footer">
+          <p className="footer-copy">Copyright © 2026 Chef Assistant</p>
+          <p className="footer-note">
+            Chef AI can make mistakes. Double-check allergens, temperatures, and
+            substitutions.
+          </p>
+        </footer>
       </main>
     </div>
   );

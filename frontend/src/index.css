@@ -4,6 +4,7 @@
   background:
     radial-gradient(circle at top left, rgba(245, 158, 11, 0.18), transparent 32%),
     radial-gradient(circle at bottom right, rgba(14, 165, 233, 0.18), transparent 28%),
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.04), transparent 44%),
     #08111f;
   color-scheme: dark;
   --bg-page: #08111f;
@@ -64,6 +65,7 @@ input {
   background:
     linear-gradient(135deg, rgba(245, 158, 11, 0.08), transparent 40%),
     linear-gradient(225deg, rgba(56, 189, 248, 0.08), transparent 35%),
+    radial-gradient(circle at center, rgba(255, 255, 255, 0.025), transparent 48%),
     var(--bg-page);
 }
 
@@ -250,20 +252,71 @@ input {
   min-width: 0;
   display: flex;
   flex-direction: column;
+  position: relative;
+}
+
+.main-panel::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 12%, rgba(245, 158, 11, 0.08), transparent 24%),
+    radial-gradient(circle at 50% 88%, rgba(56, 189, 248, 0.07), transparent 24%);
 }
 
 .topbar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  padding: 1.4rem 1.8rem 1.1rem;
+  padding: 1.2rem 1.8rem 0.9rem;
+  background: linear-gradient(180deg, rgba(8, 17, 31, 0.92), rgba(8, 17, 31, 0.35), transparent);
+  backdrop-filter: blur(12px);
 }
 
-.topbar-title {
+.topbar-side {
+  flex: 1;
   display: flex;
   align-items: center;
   gap: 1rem;
+}
+
+.topbar-side-end {
+  justify-content: flex-end;
+}
+
+.topbar-center {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0.15rem;
+}
+
+.brand-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+}
+
+.chat-name {
+  margin: 0;
+  max-width: min(60vw, 34rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-muted);
+  font-size: 0.84rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 .status-pill {
@@ -280,17 +333,7 @@ input {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 0 1.4rem 1.4rem;
-}
-
-.empty-state,
-.messages,
-.composer {
-  border-radius: 1.6rem;
-  border: 1px solid var(--border-soft);
-  background: var(--bg-panel);
-  backdrop-filter: blur(18px);
-  box-shadow: var(--shadow-soft);
+  padding: 0 1.8rem 0;
 }
 
 .empty-state {
@@ -298,6 +341,7 @@ input {
   max-width: 780px;
   padding: 2.2rem;
   text-align: center;
+  background: transparent;
 }
 
 .welcome-badge {
@@ -323,12 +367,17 @@ input {
   line-height: 1.65;
 }
 
-.suggestions {
+.suggestions-marquee {
   margin-top: 1.6rem;
+  overflow: hidden;
+  mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
+}
+
+.suggestions-track {
   display: flex;
-  flex-wrap: wrap;
-  justify-content: center;
+  width: max-content;
   gap: 0.75rem;
+  animation: suggestionsScroll 26s linear infinite;
 }
 
 .suggestion-chip {
@@ -346,7 +395,31 @@ input {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1.4rem;
+  padding: 1.1rem 0 1.5rem;
+  position: relative;
+}
+
+.messages::before,
+.messages::after {
+  content: "";
+  position: sticky;
+  left: 0;
+  right: 0;
+  height: 2.5rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.messages::before {
+  top: 0;
+  margin-bottom: -2.5rem;
+  background: linear-gradient(180deg, rgba(8, 17, 31, 0.92), transparent);
+}
+
+.messages::after {
+  bottom: 0;
+  margin-top: -2.5rem;
+  background: linear-gradient(0deg, rgba(8, 17, 31, 0.92), transparent);
 }
 
 .message-row {
@@ -365,15 +438,16 @@ input {
   max-width: min(760px, 100%);
   padding: 1rem 1rem 0.85rem;
   border-radius: 1.3rem;
-  border: 1px solid var(--border-soft);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  backdrop-filter: blur(14px);
 }
 
 .ai-bubble {
-  background: rgba(255, 255, 255, 0.05);
+  background: rgba(255, 255, 255, 0.035);
 }
 
 .user-bubble {
-  background: linear-gradient(135deg, rgba(245, 158, 11, 0.9), rgba(251, 113, 133, 0.88));
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.78), rgba(251, 113, 133, 0.76));
   border-color: transparent;
 }
 
@@ -434,8 +508,11 @@ input {
 }
 
 .composer {
-  margin-top: 1rem;
-  padding: 1rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  padding: 0.85rem 0 1rem;
+  background: linear-gradient(0deg, rgba(8, 17, 31, 0.94), rgba(8, 17, 31, 0.62), transparent);
 }
 
 .composer-shell {
@@ -444,8 +521,9 @@ input {
   gap: 0.85rem;
   padding: 0.45rem 0.45rem 0.45rem 1rem;
   border-radius: 1.1rem;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid var(--border-soft);
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
 }
 
 .composer-shell:focus-within {
@@ -480,14 +558,28 @@ input {
   transform: none;
 }
 
-.composer-note {
-  margin: 0.75rem 0 0;
-  color: var(--text-muted);
-  font-size: 0.83rem;
-}
-
 .sidebar-overlay {
   display: none;
+}
+
+.site-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.8rem 1.8rem 1.3rem;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+}
+
+.footer-copy,
+.footer-note {
+  margin: 0;
+}
+
+.footer-note {
+  text-align: right;
+  max-width: 44rem;
 }
 
 ::-webkit-scrollbar {
@@ -510,6 +602,16 @@ input {
   40% {
     opacity: 1;
     transform: translateY(-0.18rem);
+  }
+}
+
+@keyframes suggestionsScroll {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(calc(-50% - 0.375rem));
   }
 }
 
@@ -543,8 +645,16 @@ input {
     padding: 1.1rem 1rem 0.95rem;
   }
 
+  .topbar-center h2 {
+    font-size: 0.78rem;
+  }
+
+  .status-pill {
+    display: none;
+  }
+
   .chat-panel {
-    padding: 0 0.9rem 0.9rem;
+    padding: 0 1rem 0;
   }
 
   .empty-state {
@@ -556,10 +666,24 @@ input {
   }
 
   .messages {
-    padding: 1rem;
+    padding: 0.8rem 0 1.25rem;
   }
 
   .message-bubble {
     max-width: 100%;
+  }
+
+  .composer {
+    padding-bottom: 0.9rem;
+  }
+
+  .site-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0.75rem 1rem 1.1rem;
+  }
+
+  .footer-note {
+    text-align: left;
   }
 }
