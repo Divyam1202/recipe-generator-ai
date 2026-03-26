@@ -142,33 +142,40 @@ export default function App() {
   useEffect(() => {
     const savedState = window.localStorage.getItem(STORAGE_KEY);
     if (!savedState) return;
-    try {
-      const res = await fetch("http://127.0.0.1:8000/generate", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({ ingredients: userMessage.content })
-      });
-
-      if (!res.ok) throw new Error("Failed to generate recipe");
-
-      const data = await res.json();
-
-      let recipeImage = "";
+    
+    const loadData = async () => {
       try {
-        const ingredientsList = userMessage.content.split(",")[0].trim();
-        const imageRes = await fetch(
-          `https://api.unsplash.com/search/photos?query=${ingredientsList}%20food&count=1&client_id=kmL92F3P3aQDkr7Xd01fRhKH_aXaOc0kKYvtJTRHaXk`
-        );
-        const imageData = await imageRes.json();
-        if (imageData.results?.length > 0) {
-          recipeImage = imageData.results[0].urls.regular;
+        const res = await fetch("http://127.0.0.1:8000/generate", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ ingredients: userMessage.content })
+        });
+
+        if (!res.ok) throw new Error("Failed to generate recipe");
+
+        const data = await res.json();
+
+        let recipeImage = "";
+        try {
+          const ingredientsList = userMessage.content.split(",")[0].trim();
+          const imageRes = await fetch(
+            `https://api.unsplash.com/search/photos?query=${ingredientsList}%20food&count=1&client_id=kmL92F3P3aQDkr7Xd01fRhKH_aXaOc0kKYvtJTRHaXk`
+          );
+          const imageData = await imageRes.json();
+          if (imageData.results?.length > 0) {
+            recipeImage = imageData.results[0].urls.regular;
+          }
+        } catch {
+          console.log("Could not fetch image");
         }
-      } catch {
-        console.log("Could not fetch image");
+      } catch (error) {
+        console.error("Failed to load data:", error);
       }
     };
+    
+    loadData();
     loadHistoryFromBackend();
   }, []);
 
