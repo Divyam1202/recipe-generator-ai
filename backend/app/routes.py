@@ -1,14 +1,10 @@
 from fastapi import APIRouter, HTTPException
-from pydantic import BaseModel
+
+from .history import clear_all_history, delete_conversation, get_all_conversations, get_conversation, save_conversation
 from .recipe_engine import generate_recipe
-from .history import save_conversation, delete_conversation, get_all_conversations, clear_all_history, get_conversation
-from .schemas import SaveConversationRequest, DeleteConversationRequest
+from .schemas import DeleteConversationRequest, RecipeRequest, SaveConversationRequest
 
 router = APIRouter()
-
-
-class RecipeRequest(BaseModel):
-    ingredients: str
 
 
 @router.post("/generate")
@@ -71,6 +67,8 @@ def delete_conv(data: DeleteConversationRequest):
         if not success:
             raise HTTPException(status_code=404, detail="Conversation not found")
         return {"success": success}
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to delete conversation: {str(e)}")
 

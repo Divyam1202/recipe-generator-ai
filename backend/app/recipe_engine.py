@@ -1,43 +1,10 @@
-from .model_loader import get_model
-import torch
 import logging
+import torch
+
+from .model_loader import get_model
+from .recipe_utils import strip_prompt_echo, validate_recipe_structure
 
 logger = logging.getLogger(__name__)
-
-# Required sections for a valid recipe
-REQUIRED_SECTIONS = [
-    "title",
-    "prep",
-    "cook",
-    "servings",
-    "ingredients",
-    "instructions",
-    "serving"
-]
-
-
-def validate_recipe_structure(recipe: str) -> bool:
-    """
-    Validate that the recipe contains all required sections.
-    
-    Args:
-        recipe: The generated recipe text
-        
-    Returns:
-        True if recipe has all sections, False otherwise
-    """
-    recipe_lower = recipe.lower()
-    
-    # Check for required information
-    has_title = len(recipe) > 10 and recipe[0] not in ['-', '*', '#', '\n']  # First non-empty line is likely title
-    has_prep_cook = "prep" in recipe_lower and "cook" in recipe_lower
-    has_servings = "serving" in recipe_lower and ("servings" in recipe_lower or "serves" in recipe_lower)
-    has_ingredients = ("ingredient" in recipe_lower) and (":" in recipe or "-" in recipe)
-    has_instructions = ("instruction" in recipe_lower or "step" in recipe_lower) and ("1." in recipe or "- " in recipe)
-    has_tips = "serving" in recipe_lower or "tip" in recipe_lower or "serve" in recipe_lower
-    
-    return (has_title and has_prep_cook and has_servings and 
-            has_ingredients and has_instructions and has_tips)
 
 
 def generate_recipe(prompt: str, max_retries: int = 2):
@@ -63,6 +30,7 @@ def generate_recipe(prompt: str, max_retries: int = 2):
                 raise RuntimeError("Model or tokenizer failed to load")
 
             inputs = tokenizer(prompt, return_tensors="pt")
+            inputs = {key: value.to(model.device) for key, value in inputs.items()}
 
             with torch.no_grad():
                 outputs = model.generate(
@@ -79,17 +47,13 @@ def generate_recipe(prompt: str, max_retries: int = 2):
                     early_stopping=True
                 )
 
-            recipe = tokenizer.decode(outputs[0], skip_special_tokens=True)
-            
-            # Clean minimal - only remove the prompt if it appears at the start
-            # Split by "Now write the recipe" to get just the recipe part
-            if "Now write the recipe:" in recipe:
-                parts = recipe.split("Now write the recipe:")
-                if len(parts) > 1:
-                    recipe = parts[-1].strip()
+            prompt_token_count = inputs["input_ids"].shape[1]
+            generated_tokens = outputs[0][prompt_token_count:]
+            recipe = tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
+            recipe = strip_prompt_echo(prompt, recipe)
             
             # Validate recipe has actual content
-            if not recipe or len(recipe.strip()) < 150:
+            if not recipe or len(recipe) < 150:
                 logger.warning(f"Attempt {attempt + 1}: Generated recipe too short ({len(recipe)} chars)")
                 if attempt == max_retries - 1:
                     raise ValueError("Model generated insufficient content")
@@ -103,7 +67,7 @@ def generate_recipe(prompt: str, max_retries: int = 2):
                 continue
             
             logger.info(f"Recipe generated successfully on attempt {attempt + 1}")
-            return recipe.strip()
+            return recipe
             
         except torch.cuda.OutOfMemoryError:
             logger.error(f"Attempt {attempt + 1}: GPU out of memory")

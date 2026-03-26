@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./index.css";
-import { apiCall, API_URL } from "./api";
+import { apiCall } from "./api";
 
 const STORAGE_KEY = "chef-ai-history";
 
@@ -360,7 +360,7 @@ export default function App() {
         </main>
 
         <footer className="site-footer">
-          <p>© {new Date().getFullYear()} Chef AI Studio. Modern Kitchen Workspace.</p>
+          <p>&copy; {new Date().getFullYear()} Chef AI Studio. Modern Kitchen Workspace.</p>
           <div className="footer-links">
             <span>Terms</span>
             <span>Privacy</span>

@@ -26,7 +26,7 @@ class ConversationModel(BaseModel):
 class SaveConversationRequest(BaseModel):
     id: str = Field(..., min_length=1)
     title: str = Field(..., min_length=1, max_length=500)
-    messages: List[dict]
+    messages: List[MessageModel]
 
 
 class DeleteConversationRequest(BaseModel):
