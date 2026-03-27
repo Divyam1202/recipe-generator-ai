@@ -35,7 +35,6 @@ FOLLOW_UP_HINTS = (
     "what does this mean",
     "nutrition",
     "macros",
-    "protein",
     "calories",
     "short version",
 )
@@ -83,8 +82,19 @@ def normalize_conversation(messages: List[MessageModel]) -> List[Dict[str, str]]
 def should_enforce_recipe_format(user_input: str, normalized_messages: List[Dict[str, str]]) -> bool:
     text = (user_input or "").strip().lower()
     has_prior_assistant_reply = any(message["role"] == "assistant" for message in normalized_messages[:-1])
+    looks_like_ingredient_list = "," in text or " and " in text
+    ingredient_like_request = (
+        looks_like_ingredient_list
+        or "calorie" in text
+        or "protein" in text
+        or "under " in text
+        or len(text.split()) >= 8
+    )
 
     if not has_prior_assistant_reply:
+        return True
+
+    if looks_like_ingredient_list:
         return True
 
     if any(hint in text for hint in FOLLOW_UP_HINTS):
@@ -92,14 +102,6 @@ def should_enforce_recipe_format(user_input: str, normalized_messages: List[Dict
 
     if any(hint in text for hint in RECIPE_HINTS):
         return True
-
-    ingredient_like_request = (
-        "," in text
-        or "calorie" in text
-        or "protein" in text
-        or "under " in text
-        or len(text.split()) >= 8
-    )
 
     return ingredient_like_request
 
