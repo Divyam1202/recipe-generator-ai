@@ -1,6 +1,19 @@
 {
-  "1774613533000": {
-    "id": "1774613533000",
+  "1774614371011": {
+    "id": "1774614371011",
     "title": "pasta, cream, mushrooms, butter",
     "messages": [
-      
+      {
+        "id": 1774613972585,
+        "type": "user",
+        "content": "salmon, lemon, dill, olive oil"
+      },
+      {
+        "id": 1774614371011,
+        "type": "user",
+        "content": "pasta, cream, mushrooms, butter"
+      }
+    ],
+    "updatedAt": "2026-03-27T17:59:11.068172"
+  }
+}
