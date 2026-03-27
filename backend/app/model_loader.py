@@ -51,7 +51,7 @@ def _get_torch_dtype(device: str):
 def _build_model_load_kwargs(device: str) -> dict:
     """Construct keyword arguments for model loading."""
     load_kwargs = {
-        "torch_dtype": _get_torch_dtype(device),
+        "dtype": _get_torch_dtype(device),
         "low_cpu_mem_usage": True,
     }
 
@@ -89,7 +89,7 @@ def load_model() -> Tuple[AutoModelForCausalLM, AutoTokenizer]:
                 "Loading model from: %s (device: %s, dtype: %s)",
                 model_source,
                 device,
-                load_kwargs["torch_dtype"],
+                load_kwargs["dtype"],
             )
 
             try:
