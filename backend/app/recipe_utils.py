@@ -12,6 +12,16 @@ RESPONSE_PREFIXES = (
     "Chef AI:",
 )
 SUSPICIOUS_SYMBOL_RUN = re.compile(r"[^\w\s.,:;!?()/%\-'\"]{8,}")
+INLINE_SECTION_BREAK = re.compile(
+    r"(?<!\n)(?=(Recipe Title|Prep Time|Cook Time|Servings|Ingredients|Instructions|Serving Tips|Variations)\s*:)",
+    re.IGNORECASE,
+)
+INLINE_STEP_BREAK = re.compile(
+    r"(?<!\n)(?=(Step\s*\d+[\.:]|Steps?\s*\d+\s*(?:-|to)\s*\d+))",
+    re.IGNORECASE,
+)
+STEP_RANGE_PATTERN = re.compile(r"(?im)^\s*steps?\s+\d+\s*(?:-|to)\s*\d+\b")
+NUMBERED_STEP_PATTERN = re.compile(r"(?im)^\s*(?:step\s*)?(\d+)[\.:]\s+\S")
 
 
 def strip_prompt_echo(prompt: str, generated_text: str) -> str:
@@ -41,6 +51,9 @@ def sanitize_generated_text(generated_text: str) -> str:
     text = (generated_text or "").replace("\r\n", "\n").replace("\r", "\n").strip()
     if not text:
         return ""
+
+    text = INLINE_SECTION_BREAK.sub("\n", text)
+    text = INLINE_STEP_BREAK.sub("\n", text)
 
     cleaned_chars = []
     for char in text:
@@ -75,10 +88,31 @@ def sanitize_generated_text(generated_text: str) -> str:
     return "\n".join(cleaned_lines).strip()
 
 
+def has_incomplete_recipe_markers(recipe: str) -> bool:
+    """Detect placeholders or grouped-step output that should be rejected."""
+    recipe = (recipe or "").strip()
+    if not recipe:
+        return True
+
+    if STEP_RANGE_PATTERN.search(recipe):
+        return True
+
+    if re.search(r"(?im)^\s*optional\s*$", recipe):
+        return True
+
+    step_numbers = [int(match) for match in NUMBERED_STEP_PATTERN.findall(recipe)]
+    if step_numbers and len(step_numbers) < 3:
+        return True
+
+    return False
+
+
 def validate_recipe_structure(recipe: str) -> bool:
     """Validate that a generated recipe includes the main required sections."""
     recipe = (recipe or "").strip()
     if len(recipe) < 150:
+        return False
+    if has_incomplete_recipe_markers(recipe):
         return False
 
     recipe_lower = recipe.lower()
@@ -93,8 +127,9 @@ def validate_recipe_structure(recipe: str) -> bool:
     has_bulleted_ingredients = bool(re.search(r"(?m)^\s*[-*]\s+\S", recipe))
     has_numbered_ingredients = bool(re.search(r"(?m)^\s*\d+\.\s+.+\b(cup|tbsp|tsp|g|kg|ml|l|oz|lb)\b", recipe_lower))
     has_ingredients = has_ingredients_heading and (has_bulleted_ingredients or has_numbered_ingredients)
+    step_matches = NUMBERED_STEP_PATTERN.findall(recipe)
     has_steps = bool(
-        re.search(r"(?m)^\s*\d+\.\s+\S", recipe)
+        len(step_matches) >= 3
         or "instructions" in recipe_lower
         or "method" in recipe_lower
         or "directions" in recipe_lower

@@ -55,5 +55,32 @@
       }
     ],
     "updatedAt": "2026-03-27T19:04:39.715816"
+  },
+  "1774619473366": {
+    "id": "1774619473366",
+    "title": "Chef' Potato Bread Recipes (Based ...",
+    "messages": [
+      {
+        "id": 1774619473366,
+        "type": "user",
+        "content": "give me recipe based on potato, bread, green chutney, garlic, ginger, cheese, mayo, salad in detailed steps"
+      },
+      {
+        "id": 1774619721715,
+        "type": "ai",
+        "content": "Chef' Potato Bread Recipes (Based on User Input)\nFor 4 people\nPreparation time: 10 minutes\nTotal cooking time (including cooling): 2 hours\nEquipment needed: Mixer, measuring cups/spoons, baking sheet, parchment paper, cutting board\nOptional: vegetable oil, eggs, milk, flour, salt, pepper, butter, brown sugar, cinnamon, nutmeg, vanilla extract, shredded cheddar cheeses, dried thyme leaves\nStep 01: Preheat oven to 375°F (190°C). Grease two 8x4-inch loaf pans with vegetarian shortening or cookspray. Set aside. Step 6: In a large mixing bowl, combine all dry ingridients (flour mixture), then add wet ingrdients(buttermilk, egg, melted shorten, soda, water, spices). Stir until just combined. Fold in shaved chocolate. Divide batter evenly between prepared pots. Sprinkle diced potatoes over each loaves. Let stand at room temperature for about 5 minutes before bake. Steps 7-11\nPlace pies in preheated ovens and baked for approximately 9 minutes per side. Remove from ovent and let cool completely on wire rack. Optional"
+      },
+      {
+        "id": 1774619857505,
+        "type": "user",
+        "content": "all steps"
+      },
+      {
+        "id": 1774619912712,
+        "type": "ai",
+        "content": "Sure, here is the complete step-by-step guide to make Cheffy Potatoes and Baked Pies using potatos, avocado, mayonnaise, chopped herbs, minced onion, grated Parmesan cheesecake, and raspberry sauce. Note that some of these items can be found at your local grocery store or online. For more detailed instructions, please refer to the following:\n\nIngredients: (for the potata patties):\n- ½ cup all-purpose flours\n- ¼ tsp salt\n– ⅔ cup vegetables (such as potaties, carrots, celery) – mix them well\n– ¾ cup plain"
+      }
+    ],
+    "updatedAt": "2026-03-27T19:28:32.720988"
   }
 }

@@ -67,11 +67,20 @@ RECIPE_RESPONSE_TEMPLATE = (
     "Ingredients:\n"
     "- item with quantity\n"
     "Instructions:\n"
-    "1. step\n"
+    "1. one complete, detailed step\n"
     "Serving Tips:\n"
     "- tip\n"
     "Variations:\n"
     "- variation"
+)
+DETAILED_STEP_HINTS = (
+    "detailed",
+    "detail",
+    "step by step",
+    "step-by-step",
+    "steps",
+    "instructions",
+    "method",
 )
 
 
@@ -136,13 +145,27 @@ def build_generation_context(user_input: str, messages: List[MessageModel]) -> D
     require_recipe = should_enforce_recipe_format(cleaned_input, normalized_messages)
     system_prompt = RECIPE_SYSTEM_PROMPT if require_recipe else BASE_SYSTEM_PROMPT
     chat_messages = [{"role": "system", "content": system_prompt}, *normalized_messages[-MAX_CONTEXT_MESSAGES:]]
+    wants_detailed_steps = any(hint in cleaned_input.lower() for hint in DETAILED_STEP_HINTS)
 
     if require_recipe and chat_messages:
+        detail_instruction = (
+            "\n\nFor the Instructions section, write 6 to 10 separate numbered steps."
+            "\nEach step must be on its own line and be fully written out with clear actions, timing, heat level, and texture cues where helpful."
+            "\nDo not combine steps into ranges like 'Steps 7-11'."
+            "\nDo not skip step numbers."
+            "\nDo not end with incomplete fragments like 'Optional'."
+        )
+        if wants_detailed_steps:
+            detail_instruction += (
+                "\nThe user explicitly wants detailed steps, so make every step specific and beginner-friendly."
+            )
+
         chat_messages[-1] = {
             "role": "user",
             "content": (
                 f"User request: {cleaned_input}\n\n"
                 f"{RECIPE_RESPONSE_TEMPLATE}"
+                f"{detail_instruction}"
             ),
         }
 
