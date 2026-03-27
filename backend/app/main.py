@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 from .model_loader import preload_model_in_background
@@ -51,7 +51,10 @@ def ready_check():
         return {"status": "ready", "service": "Recipe AI Backend"}
     except Exception as e:
         logger.error(f"Model not ready: {e}")
-        return {"status": "not_ready", "error": str(e)}, 503
+        raise HTTPException(
+            status_code=503,
+            detail={"status": "not_ready", "error": str(e)},
+        )
 
 
 @app.get("/")
