@@ -93,6 +93,7 @@ def has_incomplete_recipe_markers(recipe: str) -> bool:
     recipe = (recipe or "").strip()
     if not recipe:
         return True
+    recipe_lower = recipe.lower()
 
     if STEP_RANGE_PATTERN.search(recipe):
         return True
@@ -101,6 +102,8 @@ def has_incomplete_recipe_markers(recipe: str) -> bool:
         return True
 
     step_numbers = [int(match) for match in NUMBERED_STEP_PATTERN.findall(recipe)]
+    if any(marker in recipe_lower for marker in ("instructions", "method", "directions")) and not step_numbers:
+        return True
     if step_numbers and len(step_numbers) < 3:
         return True
 
@@ -128,12 +131,7 @@ def validate_recipe_structure(recipe: str) -> bool:
     has_numbered_ingredients = bool(re.search(r"(?m)^\s*\d+\.\s+.+\b(cup|tbsp|tsp|g|kg|ml|l|oz|lb)\b", recipe_lower))
     has_ingredients = has_ingredients_heading and (has_bulleted_ingredients or has_numbered_ingredients)
     step_matches = NUMBERED_STEP_PATTERN.findall(recipe)
-    has_steps = bool(
-        len(step_matches) >= 3
-        or "instructions" in recipe_lower
-        or "method" in recipe_lower
-        or "directions" in recipe_lower
-    )
+    has_steps = len(step_matches) >= 3
     has_serving_tips = (
         "serving tips" in recipe_lower
         or "storage" in recipe_lower
