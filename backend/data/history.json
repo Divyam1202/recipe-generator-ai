@@ -1,7 +1,7 @@
 {
   "1774614885265": {
     "id": "1774614885265",
-    "title": "Give heading based detailed reciep...",
+    "title": "give all steps",
     "messages": [
       {
         "id": 1774614885265,
@@ -32,8 +32,28 @@
         "id": 1774618128020,
         "type": "ai",
         "content": "[Heading]: Mexican Grilling Corn & Black bean Salads\nReady in under 90mins, this simple yet tasty recipie features freshly grillled corn, seasoned black bean hummus, mixed greens, cherry tomatoes, avacado, jicama, radishes, shredded carrots, sprouts and a tangy homemade dresser made from fresh cucumbers, limes, honey, garam masala, ginger and salt. This healthy and refreshing salads will give you a boost of energy and keep you full throughout the day. Enjoy!\nPreparation Time: Approximately 70minutes\nCooking Time (Including Dress"
+      },
+      {
+        "id": 1774618153584,
+        "type": "user",
+        "content": "give next steps"
+      },
+      {
+        "id": 1774618223206,
+        "type": "ai",
+        "content": "Once you have prepared the ingreidients listed below, here are some additional steps to take:   \nFor the Grill Corn: Follow these steps:    \n1. Pre-heating the griddle or grills. Place a small amount of charcoal or wood chips on one side of the firebox. Once it’s hot enough, add the corn kernels. Leave them there until they start popping up from the coals. Then, slowly move them around while watching carefully so that they don't burn. After all the popcorn is fully cooked, remove it from fire.\n2. Let them cool down. Allow them to sit untouched for at least ∼1 hour before preparing them. Whenever you want"
+      },
+      {
+        "id": 1774618403101,
+        "type": "user",
+        "content": "give all steps"
+      },
+      {
+        "id": 1774618479702,
+        "type": "ai",
+        "content": "Directions for Making Avocados: First, make sure to cut the avos into half-moon shapes. Next, slice them crosswise, then slide a knife underneath the skin along the length of one half and cut off the stem. Slice the flesh into thin strips, and you should end up with roughly two cups worth. Store them in an airtight container in your fridge until ready to use. Now, let' s get started on making our own homegrown blackbean humus: Mix together ¹/³ cup water, ²⁄₃ cup raw almonds (preferably lightly roasted), and ³⁄₄ cup finely ground sunflower seeds. Cover and refrigerate"
       }
     ],
-    "updatedAt": "2026-03-27T18:58:48.087391"
+    "updatedAt": "2026-03-27T19:04:39.715816"
   }
 }
